@@ -129,7 +129,7 @@
         }
 
         .admin-container {
-            max-width: 900px; margin: 0 auto; background: white; padding: 20px;
+            max-width: 95%; margin: 0 auto; background: white; padding: 20px;
             border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); min-height: 90vh;
         }
 
@@ -168,85 +168,118 @@
             .time-display { font-size: 2.2rem; }
             .mode-btn { font-size: 0.75rem; padding: 6px 5px; }
             #halPetugas { padding: 0; background: white; }
-            .admin-container { box-shadow: none; border-radius: 0; padding: 15px; min-height: 100vh; }
+            .admin-container { box-shadow: none; border-radius: 0; padding: 15px; min-height: 100vh; max-width: 100%; }
             .btn-admin { top: 10px; right: 10px; }
         }
 
-        .table-rekap-container { max-height: 400px; overflow-x: auto; border: 1px solid #eee; border-radius: 8px; margin-top: 15px; }
-        .table-rekap { font-size: 0.8rem; white-space: nowrap; }
+        .table-rekap-container { max-height: 500px; overflow-x: auto; border: 1px solid #eee; border-radius: 8px; margin-top: 15px; }
+        .table-rekap { font-size: 0.75rem; border-collapse: collapse; width: 100%; }
+        .table-rekap th, .table-rekap td { padding: 3px 2px !important; text-align: center; vertical-align: middle; }
         .table-rekap th { background-color: #343a40 !important; color: #ffffff !important; position: sticky; top: 0; z-index: 10; border: 1px solid #454d55; }
 
-        /* CSS KHUSUS CETAK DIPERBAIKI */
+        /* ==================== CSS CETAK DISEMPURNAKAN 100% FULL ==================== */
         @media print {
             @page { 
                 size: A4 landscape; 
-                margin: 5mm; 
+                margin: 3mm; 
             }
-            body, html { 
-                background: white !important; 
+            html, body { 
+                background: #fff !important; 
                 width: 100% !important; 
                 height: auto !important; 
                 margin: 0 !important; 
                 padding: 0 !important; 
                 overflow: visible !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
-            body * { visibility: hidden; }
 
-            /* Cetak Rekap Bulanan */
-            body.printing-rekap #printableArea, 
-            body.printing-rekap #printableArea * { 
-                visibility: visible; 
+            /* Sembunyikan elemen utama halaman web */
+            .main-card, #halPetugas > .admin-container > *:not(#adminTabContent), 
+            #adminTabs, .card, #exportButtons, .no-print, .btn-admin { 
+                display: none !important; 
             }
+
+            #halPetugas {
+                position: static !important;
+                background: #fff !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                display: block !important;
+            }
+
+            .admin-container {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+
+            /* CETAK REKAP BULANAN */
+            body.printing-rekap #rekap-pane {
+                display: block !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+
             body.printing-rekap #printableArea { 
-                position: absolute; 
-                left: 0; 
-                top: 0; 
-                width: 100%; 
-                padding: 10px; 
-                background: white; 
+                display: block !important;
+                width: 100% !important; 
+                margin: 0 !important;
+                padding: 0 !important;
             }
+
             .table-rekap-container {
                 max-height: none !important;
                 overflow: visible !important;
                 border: none !important;
-            }
-            .table-rekap {
-                font-size: 0.55rem !important;
-                white-space: normal !important;
-                width: 100% !important;
-            }
-            .table-rekap th {
-                position: static !important;
-                background-color: #343a40 !important;
-                color: #ffffff !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
+                margin-top: 5px !important;
             }
 
-            /* Cetak ID Card */
-            body.printing-idcard #printAreaIDCard, 
-            body.printing-idcard #printAreaIDCard * { 
-                visibility: visible; 
+            .table-rekap {
+                font-size: 5.5pt !important;
+                width: 100% !important;
+                table-layout: fixed !important;
+                border-collapse: collapse !important;
+            }
+
+            .table-rekap th, .table-rekap td {
+                padding: 1px 0px !important;
+                height: 14px !important;
+                border: 0.5px solid #666 !important;
+                word-wrap: break-word !important;
+            }
+
+            /* Lebar spesifik kolom agar tidak melimpah dari A4 Landscape */
+            .table-rekap th:nth-child(1), .table-rekap td:nth-child(1) { width: 1.8% !important; } /* No */
+            .table-rekap th:nth-child(2), .table-rekap td:nth-child(2) { width: 12% !important; text-align: left !important; padding-left: 2px !important; } /* Nama */
+            .table-rekap th:nth-child(3), .table-rekap td:nth-child(3) { width: 3.5% !important; } /* JK */
+            .table-rekap th:nth-child(4), .table-rekap td:nth-child(4) { width: 4.5% !important; } /* Kelas */
+            
+            /* Sisa persentase dibagi rata untuk 31 hari + 3 Total */
+            .table-rekap th.col-hari, .table-rekap td.col-hari { width: 0.78% !important; }
+            .table-rekap th.col-total, .table-rekap td.col-total { width: 1.2% !important; font-weight: bold !important; }
+
+            .table-rekap th {
+                background-color: #eee !important;
+                color: #000 !important;
+            }
+
+            /* CETAK ID CARD */
+            body.printing-idcard #idcard-pane {
+                display: block !important;
+                opacity: 1 !important;
             }
             body.printing-idcard #printAreaIDCard { 
-                position: absolute; 
-                left: 0; 
-                top: 0; 
-                width: 100%; 
-                display: flex; 
-                flex-wrap: wrap; 
-                gap: 2mm; 
+                display: flex !important; 
+                flex-wrap: wrap !important; 
+                gap: 4mm !important; 
+                justify-content: flex-start !important;
             }
             .id-card-wrapper { 
-                border: 1px solid #000; 
-                break-inside: avoid; 
-            }
-
-            /* Sembunyikan elemen non-cetak */
-            .no-print, .btn-admin, .mode-switch, .clock-box, #absenStatus, 
-            #containerQR, #adminTabs, .btn, input, select, .form-check, 
-            .list-group, #exportButtons { 
-                display: none !important; 
+                border: 1px solid #000 !important; 
+                page-break-inside: avoid !important; 
             }
         }
     </style>
@@ -404,18 +437,18 @@
                     </div>
 
                     <div id="printableArea">
-                        <div id="printHeader" class="d-none mb-4">
-                            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px;">
-                                <div style="width: 100px; text-align: left;"><img id="printLogoKiri" src="" style="width: 80px; height: 80px; object-fit: contain;"></div>
+                        <div id="printHeader" class="d-none mb-2">
+                            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 10px;">
+                                <div style="width: 60px; text-align: left;"><img id="printLogoKiri" src="" style="width: 50px; height: 50px; object-fit: contain;"></div>
                                 <div style="flex: 1; text-align: center;">
-                                    <h3 id="printHeader1" style="margin: 0; font-weight: bold; font-size: 1.2rem; text-transform: uppercase;"></h3>
-                                    <h5 id="printHeader3" style="margin: 0; font-weight: bold; font-size: 1.4rem;"></h5>
+                                    <h4 id="printHeader1" style="margin: 0; font-weight: bold; font-size: 1rem; text-transform: uppercase;"></h4>
+                                    <h6 id="printHeader3" style="margin: 0; font-size: 0.8rem;"></h6>
                                 </div>
                             </div>
-                            <h5 class="fw-bold text-center">REKAPITULASI SHOLAT & HAID BULAN <span id="printBulan"></span></h5>
+                            <h6 class="fw-bold text-center m-0" style="font-size: 0.9rem;">REKAPITULASI SHOLAT & HAID - BULAN <span id="printBulan"></span></h6>
                         </div>
                         <div class="table-rekap-container">
-                            <table class="table table-bordered table-striped table-rekap" id="tabelRekapData">
+                            <table class="table table-bordered table-rekap" id="tabelRekapData">
                                 <thead></thead>
                                 <tbody><tr><td colspan="6" class="text-center py-4">Silakan filter dan klik Tampilkan Rekap</td></tr></tbody>
                             </table>
@@ -1005,13 +1038,13 @@
             }).fail(function() { Swal.close(); Swal.fire('Error', 'Gagal koneksi ke server.', 'error'); });
         }
 
-        /* FUNGSI DENGAN PERBAIKAN D-PRINT-NONE */
+        /* FUNGSI DENGAN CLASS KHUSUS SETIAP KOLOM UNTUK CSS PRINTING */
         function renderTableRekap(data) {
-            let headerRow = `<tr><th rowspan="2" class="align-middle text-center">No</th><th rowspan="2" class="align-middle text-center">Nama Lengkap</th><th rowspan="2" class="align-middle text-center">JK</th><th rowspan="2" class="align-middle text-center">Kelas/Ket</th>`;
+            let headerRow = `<tr><th rowspan="2" class="align-middle text-center">No</th><th rowspan="2" class="align-middle text-center">Nama Lengkap</th><th rowspan="2" class="align-middle text-center">JK</th><th rowspan="2" class="align-middle text-center">Kelas</th>`;
             for(let i=1; i<=31; i++) headerRow += `<th colspan="3" class="text-center" style="font-size:0.55rem;">${i}</th>`;
             headerRow += `<th colspan="3" class="text-center bg-secondary text-white">Total</th></tr><tr>`;
-            for(let i=1; i<=31; i++) headerRow += `<th style="font-size:0.45rem;" title="Dhuha">Dh</th><th style="font-size:0.45rem;" title="Dhuhur">Dhr</th><th style="font-size:0.45rem;" title="Haid">H</th>`;
-            headerRow += `<th class="text-center" style="font-size:0.65rem">Dh</th><th class="text-center" style="font-size:0.65rem">Dhr</th><th class="text-center" style="font-size:0.65rem">H</th></tr>`;
+            for(let i=1; i<=31; i++) headerRow += `<th class="col-hari" title="Dhuha">Dh</th><th class="col-hari" title="Dhuhur">Dhr</th><th class="col-hari" title="Haid">H</th>`;
+            headerRow += `<th class="col-total">Dh</th><th class="col-total">Dhr</th><th class="col-total">H</th></tr>`;
 
             let bodyRows = "";
             data.forEach(d => {
@@ -1031,9 +1064,9 @@
                     if(h.dhuhur) cDhr++;
                     if(h.haid) cH++;
 
-                    rowHTML += `<td class="text-center text-primary" style="font-size:0.55rem;">${vDh}</td><td class="text-center text-success" style="font-size:0.55rem;">${vDhr}</td><td class="text-center text-warning" style="font-size:0.55rem;">${vH}</td>`;
+                    rowHTML += `<td class="text-center col-hari text-primary">${vDh}</td><td class="text-center col-hari text-success">${vDhr}</td><td class="text-center col-hari text-warning">${vH}</td>`;
                 }
-                rowHTML += `<td class="text-center fw-bold">${cDh}</td><td class="text-center fw-bold">${cDhr}</td><td class="text-center fw-bold">${cH}</td></tr>`;
+                rowHTML += `<td class="text-center col-total">${cDh}</td><td class="text-center col-total">${cDhr}</td><td class="text-center col-total">${cH}</td></tr>`;
                 bodyRows += rowHTML;
             });
             $('#tabelRekapData thead').html(headerRow);
@@ -1079,7 +1112,10 @@
 
         function printRekap() { 
             document.body.classList.add('printing-rekap');
-            setTimeout(() => { window.print(); document.body.classList.remove('printing-rekap'); }, 1000);
+            setTimeout(() => { 
+                window.print(); 
+                document.body.classList.remove('printing-rekap'); 
+            }, 500);
         }
         
         function renderIdCardList() {
@@ -1145,7 +1181,10 @@
             });
             if (doPrint) {
                 document.body.classList.add('printing-idcard');
-                setTimeout(() => { window.print(); document.body.classList.remove('printing-idcard'); }, 1000);
+                setTimeout(() => { 
+                    window.print(); 
+                    document.body.classList.remove('printing-idcard'); 
+                }, 500);
             }
         }
     </script>
