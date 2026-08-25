@@ -177,16 +177,17 @@
         .table-rekap th, .table-rekap td { padding: 3px 2px !important; text-align: center; vertical-align: middle; }
         .table-rekap th { background-color: #343a40 !important; color: #ffffff !important; position: sticky; top: 0; z-index: 10; border: 1px solid #454d55; }
 
-        /* ==================== CSS CETAK DISEMPURNAKAN 100% FULL ==================== */
+        /* ==================== CSS CETAK REKAP LANDSCAPE FIXED ==================== */
+        @page {
+            size: A4 landscape;
+            margin: 5mm;
+        }
+
         @media print {
-            @page { 
-                size: A4 landscape; 
-                margin: 3mm; 
-            }
             html, body { 
+                width: 297mm !important;
+                height: 210mm !important;
                 background: #fff !important; 
-                width: 100% !important; 
-                height: auto !important; 
                 margin: 0 !important; 
                 padding: 0 !important; 
                 overflow: visible !important;
@@ -194,30 +195,28 @@
                 print-color-adjust: exact !important;
             }
 
-            .main-card, #halPetugas > .admin-container > *:not(#adminTabContent), 
-            #adminTabs, .card, #exportButtons, .no-print, .btn-admin { 
+            /* Sembunyikan elemen antarmuka luar */
+            .main-card, 
+            #halPetugas > .admin-container > *:not(#adminTabContent), 
+            #adminTabs, 
+            .card, 
+            #exportButtons, 
+            .no-print, 
+            .btn-admin { 
                 display: none !important; 
             }
 
-            #halPetugas {
-                position: static !important;
-                background: #fff !important;
-                padding: 0 !important;
-                overflow: visible !important;
-                display: block !important;
-            }
-
-            .admin-container {
-                max-width: 100% !important;
-                padding: 0 !important;
+            #halPetugas, .admin-container, #adminTabContent, #rekap-pane {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
                 margin: 0 !important;
+                padding: 0 !important;
+                background: #fff !important;
                 box-shadow: none !important;
                 border: none !important;
-            }
-
-            body.printing-rekap #rekap-pane {
                 display: block !important;
-                opacity: 1 !important;
                 visibility: visible !important;
             }
 
@@ -233,10 +232,11 @@
                 overflow: visible !important;
                 border: none !important;
                 margin-top: 5px !important;
+                width: 100% !important;
             }
 
             .table-rekap {
-                font-size: 5.5pt !important;
+                font-size: 5.2pt !important;
                 width: 100% !important;
                 table-layout: fixed !important;
                 border-collapse: collapse !important;
@@ -244,24 +244,25 @@
 
             .table-rekap th, .table-rekap td {
                 padding: 1px 0px !important;
-                height: 14px !important;
-                border: 0.5px solid #666 !important;
+                height: 13px !important;
+                border: 0.5px solid #000 !important;
                 word-wrap: break-word !important;
             }
 
-            .table-rekap th:nth-child(1), .table-rekap td:nth-child(1) { width: 1.8% !important; }
-            .table-rekap th:nth-child(2), .table-rekap td:nth-child(2) { width: 12% !important; text-align: left !important; padding-left: 2px !important; }
-            .table-rekap th:nth-child(3), .table-rekap td:nth-child(3) { width: 3.5% !important; }
-            .table-rekap th:nth-child(4), .table-rekap td:nth-child(4) { width: 4.5% !important; }
+            .table-rekap th:nth-child(1), .table-rekap td:nth-child(1) { width: 2% !important; }
+            .table-rekap th:nth-child(2), .table-rekap td:nth-child(2) { width: 13% !important; text-align: left !important; padding-left: 2px !important; }
+            .table-rekap th:nth-child(3), .table-rekap td:nth-child(3) { width: 3% !important; }
+            .table-rekap th:nth-child(4), .table-rekap td:nth-child(4) { width: 4% !important; }
             
             .table-rekap th.col-hari, .table-rekap td.col-hari { width: 0.78% !important; }
-            .table-rekap th.col-total, .table-rekap td.col-total { width: 1.2% !important; font-weight: bold !important; }
+            .table-rekap th.col-total, .table-rekap td.col-total { width: 1.1% !important; font-weight: bold !important; }
 
             .table-rekap th {
-                background-color: #eee !important;
+                background-color: #e9ecef !important;
                 color: #000 !important;
             }
 
+            /* Khusus Cetak ID Card */
             body.printing-idcard #idcard-pane {
                 display: block !important;
                 opacity: 1 !important;
@@ -1067,7 +1068,6 @@
             $('#tabelRekapData tbody').html(bodyRows);
         }
 
-        /* ==================== FUNGSI EKSPORT CSV (EXCEL) PERBAIKAN ==================== */
         function exportToCSV() {
             if (!rekapDataCache || rekapDataCache.length === 0) {
                 return Swal.fire('Info', 'Data rekap masih kosong!', 'info');
@@ -1105,7 +1105,6 @@
                 csv.push(r.join(","));
             });
 
-            // \uFEFF Byte Order Mark (BOM) agar UTF-8 dibaca rapi oleh MS Excel
             let blob = new Blob(["\uFEFF" + csv.join("\n")], { type: "text/csv;charset=utf-8;" });
             let bulan = $('#filterBulan').val();
             let link = document.createElement("a");
@@ -1114,20 +1113,18 @@
             link.click();
         }
 
-        /* ==================== FUNGSI EKSPORT PDF PERBAIKAN ==================== */
         function exportToPDF() {
             if (!window.jspdf || !rekapDataCache || rekapDataCache.length === 0) {
                 return Swal.fire('Info', 'Data rekap kosong atau library belum siap.', 'info');
             }
 
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4'); // Orientation Landscape
+            const doc = new jsPDF('l', 'mm', 'a4');
 
             let bulan = $('#filterBulan').val();
             let namaSekolah = $('#namaLembaga').text();
             let alamatSekolah = $('#alamatLembaga').text();
 
-            // Judul Header Dokumen PDF
             doc.setFontSize(14);
             doc.setFont("helvetica", "bold");
             doc.text(namaSekolah.toUpperCase(), 148, 12, { align: 'center' });
@@ -1140,7 +1137,6 @@
             doc.setFont("helvetica", "bold");
             doc.text(`REKAPITULASI SHOLAT & HAID - BULAN ${bulan} ${new Date().getFullYear()}`, 148, 24, { align: 'center' });
 
-            // Menyiapkan Struktur Header AutoTable
             let headRow1 = [
                 { content: 'No', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
                 { content: 'Nama Lengkap', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
@@ -1159,7 +1155,6 @@
             }
             headRow2.push('Dh', 'Dhr', 'H');
 
-            // Menyiapkan Body Data AutoTable
             let bodyData = [];
             rekapDataCache.forEach(d => {
                 let cDh = 0, cDhr = 0, cH = 0;
@@ -1181,7 +1176,6 @@
                 bodyData.push(row);
             });
 
-            // Render Tabel PDF Menggunakan AutoTable
             doc.autoTable({
                 startY: 28,
                 head: [headRow1, headRow2],
@@ -1216,7 +1210,7 @@
             setTimeout(() => { 
                 window.print(); 
                 document.body.classList.remove('printing-rekap'); 
-            }, 500);
+            }, 300);
         }
         
         function renderIdCardList() {
