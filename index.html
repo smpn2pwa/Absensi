@@ -194,7 +194,6 @@
                 print-color-adjust: exact !important;
             }
 
-            /* Sembunyikan elemen utama halaman web */
             .main-card, #halPetugas > .admin-container > *:not(#adminTabContent), 
             #adminTabs, .card, #exportButtons, .no-print, .btn-admin { 
                 display: none !important; 
@@ -216,7 +215,6 @@
                 border: none !important;
             }
 
-            /* CETAK REKAP BULANAN */
             body.printing-rekap #rekap-pane {
                 display: block !important;
                 opacity: 1 !important;
@@ -251,13 +249,11 @@
                 word-wrap: break-word !important;
             }
 
-            /* Lebar spesifik kolom agar tidak melimpah dari A4 Landscape */
-            .table-rekap th:nth-child(1), .table-rekap td:nth-child(1) { width: 1.8% !important; } /* No */
-            .table-rekap th:nth-child(2), .table-rekap td:nth-child(2) { width: 12% !important; text-align: left !important; padding-left: 2px !important; } /* Nama */
-            .table-rekap th:nth-child(3), .table-rekap td:nth-child(3) { width: 3.5% !important; } /* JK */
-            .table-rekap th:nth-child(4), .table-rekap td:nth-child(4) { width: 4.5% !important; } /* Kelas */
+            .table-rekap th:nth-child(1), .table-rekap td:nth-child(1) { width: 1.8% !important; }
+            .table-rekap th:nth-child(2), .table-rekap td:nth-child(2) { width: 12% !important; text-align: left !important; padding-left: 2px !important; }
+            .table-rekap th:nth-child(3), .table-rekap td:nth-child(3) { width: 3.5% !important; }
+            .table-rekap th:nth-child(4), .table-rekap td:nth-child(4) { width: 4.5% !important; }
             
-            /* Sisa persentase dibagi rata untuk 31 hari + 3 Total */
             .table-rekap th.col-hari, .table-rekap td.col-hari { width: 0.78% !important; }
             .table-rekap th.col-total, .table-rekap td.col-total { width: 1.2% !important; font-weight: bold !important; }
 
@@ -266,7 +262,6 @@
                 color: #000 !important;
             }
 
-            /* CETAK ID CARD */
             body.printing-idcard #idcard-pane {
                 display: block !important;
                 opacity: 1 !important;
@@ -431,7 +426,7 @@
                     </div>
 
                     <div id="exportButtons" class="d-none mb-3 text-end">
-                        <button class="btn btn-success btn-sm me-1" onclick="exportToCSV()"><i class="fas fa-file-csv"></i> CSV</button>
+                        <button class="btn btn-success btn-sm me-1" onclick="exportToCSV()"><i class="fas fa-file-excel"></i> Excel (CSV)</button>
                         <button class="btn btn-danger btn-sm me-1" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
                         <button class="btn btn-secondary btn-sm" onclick="printRekap()"><i class="fas fa-print"></i> Cetak</button>
                     </div>
@@ -1038,7 +1033,6 @@
             }).fail(function() { Swal.close(); Swal.fire('Error', 'Gagal koneksi ke server.', 'error'); });
         }
 
-        /* FUNGSI DENGAN CLASS KHUSUS SETIAP KOLOM UNTUK CSS PRINTING */
         function renderTableRekap(data) {
             let headerRow = `<tr><th rowspan="2" class="align-middle text-center">No</th><th rowspan="2" class="align-middle text-center">Nama Lengkap</th><th rowspan="2" class="align-middle text-center">JK</th><th rowspan="2" class="align-middle text-center">Kelas</th>`;
             for(let i=1; i<=31; i++) headerRow += `<th colspan="3" class="text-center" style="font-size:0.55rem;">${i}</th>`;
@@ -1052,7 +1046,7 @@
                 let namaKelas = d.kelas || d.ket || '-';
                 let jenisKelamin = d.jenis_kelamin || d.role || '-';
                 
-                let rowHTML = `<tr><td class="text-center">${d.no}</td><td class="fw-bold">${d.nama}</td><td class="text-center">${jenisKelamin}</td><td class="text-center">${namaKelas}</td>`;
+                let rowHTML = `<tr><td class="text-center">${d.no}</td><td class="fw-bold text-start">${d.nama}</td><td class="text-center">${jenisKelamin}</td><td class="text-center">${namaKelas}</td>`;
                 
                 for(let i=1; i<=31; i++) {
                     let h = d.presensi[i] || {};
@@ -1073,21 +1067,37 @@
             $('#tabelRekapData tbody').html(bodyRows);
         }
 
+        /* ==================== FUNGSI EKSPORT CSV (EXCEL) PERBAIKAN ==================== */
         function exportToCSV() {
+            if (!rekapDataCache || rekapDataCache.length === 0) {
+                return Swal.fire('Info', 'Data rekap masih kosong!', 'info');
+            }
+
             let csv = [];
-            let header = ["No", "Nama Lengkap", "Jenis Kelamin", "Kelas/Ket"];
-            for(let i=1; i<=31; i++) { header.push(i+"_Dhuha"); header.push(i+"_Dhuhur"); header.push(i+"_Haid"); }
-            header.push("Total_Dhuha", "Total_Dhuhur", "Total_Haid");
-            csv.push(header.join(","));
+            let rowHeader1 = ["No", "Nama Lengkap", "Jenis Kelamin", "Kelas/Ket"];
+            let rowHeader2 = ["", "", "", ""];
+
+            for (let i = 1; i <= 31; i++) {
+                rowHeader1.push(`Tgl ${i}`, "", "");
+                rowHeader2.push("Dhuha", "Dhuhur", "Haid");
+            }
+            rowHeader1.push("Total", "", "");
+            rowHeader2.push("Dhuha", "Dhuhur", "Haid");
+
+            csv.push(rowHeader1.join(","));
+            csv.push(rowHeader2.join(","));
 
             rekapDataCache.forEach(d => {
-                let r = [d.no, `"${d.nama}"`, d.jenis_kelamin || d.role || '', d.kelas || d.ket || ''];
+                let namaClean = `"${(d.nama || '').replace(/"/g, '""')}"`;
+                let r = [d.no, namaClean, d.jenis_kelamin || d.role || '', d.kelas || d.ket || ''];
                 let cDh = 0, cDhr = 0, cH = 0;
-                for(let i=1; i<=31; i++) { 
+
+                for (let i = 1; i <= 31; i++) {
                     let h = d.presensi[i] || {};
                     let vDh = h.dhuha ? 1 : 0;
                     let vDhr = h.dhuhur ? 1 : 0;
                     let vH = h.haid ? 1 : 0;
+
                     r.push(vDh, vDhr, vH);
                     cDh += vDh; cDhr += vDhr; cH += vH;
                 }
@@ -1095,19 +1105,110 @@
                 csv.push(r.join(","));
             });
 
-            let blob = new Blob([csv.join("\n")], { type: "text/csv" });
+            // \uFEFF Byte Order Mark (BOM) agar UTF-8 dibaca rapi oleh MS Excel
+            let blob = new Blob(["\uFEFF" + csv.join("\n")], { type: "text/csv;charset=utf-8;" });
+            let bulan = $('#filterBulan').val();
             let link = document.createElement("a");
-            link.download = `Rekap_Sholat_Haid.csv`;
+            link.download = `Rekap_Sholat_Haid_${bulan}.csv`;
             link.href = window.URL.createObjectURL(blob);
             link.click();
         }
 
+        /* ==================== FUNGSI EKSPORT PDF PERBAIKAN ==================== */
         function exportToPDF() {
-            if (!window.jspdf) return Swal.fire('Error', 'Library PDF belum siap.', 'error');
+            if (!window.jspdf || !rekapDataCache || rekapDataCache.length === 0) {
+                return Swal.fire('Info', 'Data rekap kosong atau library belum siap.', 'info');
+            }
+
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4');
-            doc.text("Laporan Rekap Presensi Sholat & Haid", 15, 15);
-            doc.save("Rekap_Sholat_Haid.pdf");
+            const doc = new jsPDF('l', 'mm', 'a4'); // Orientation Landscape
+
+            let bulan = $('#filterBulan').val();
+            let namaSekolah = $('#namaLembaga').text();
+            let alamatSekolah = $('#alamatLembaga').text();
+
+            // Judul Header Dokumen PDF
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text(namaSekolah.toUpperCase(), 148, 12, { align: 'center' });
+
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "normal");
+            doc.text(alamatSekolah, 148, 17, { align: 'center' });
+
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.text(`REKAPITULASI SHOLAT & HAID - BULAN ${bulan} ${new Date().getFullYear()}`, 148, 24, { align: 'center' });
+
+            // Menyiapkan Struktur Header AutoTable
+            let headRow1 = [
+                { content: 'No', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+                { content: 'Nama Lengkap', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+                { content: 'JK', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+                { content: 'Kelas', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } }
+            ];
+
+            for (let i = 1; i <= 31; i++) {
+                headRow1.push({ content: `${i}`, colSpan: 3, styles: { halign: 'center' } });
+            }
+            headRow1.push({ content: 'Total', colSpan: 3, styles: { halign: 'center' } });
+
+            let headRow2 = [];
+            for (let i = 1; i <= 31; i++) {
+                headRow2.push('Dh', 'Dhr', 'H');
+            }
+            headRow2.push('Dh', 'Dhr', 'H');
+
+            // Menyiapkan Body Data AutoTable
+            let bodyData = [];
+            rekapDataCache.forEach(d => {
+                let cDh = 0, cDhr = 0, cH = 0;
+                let row = [d.no, d.nama, d.jenis_kelamin || d.role || '-', d.kelas || d.ket || '-'];
+
+                for (let i = 1; i <= 31; i++) {
+                    let h = d.presensi[i] || {};
+                    let vDh = h.dhuha ? 'V' : '-';
+                    let vDhr = h.dhuhur ? 'V' : '-';
+                    let vH = h.haid ? 'H' : '-';
+
+                    if (h.dhuha) cDh++;
+                    if (h.dhuhur) cDhr++;
+                    if (h.haid) cH++;
+
+                    row.push(vDh, vDhr, vH);
+                }
+                row.push(cDh, cDhr, cH);
+                bodyData.push(row);
+            });
+
+            // Render Tabel PDF Menggunakan AutoTable
+            doc.autoTable({
+                startY: 28,
+                head: [headRow1, headRow2],
+                body: bodyData,
+                theme: 'grid',
+                styles: {
+                    fontSize: 4.5,
+                    cellPadding: 0.5,
+                    alignment: 'center',
+                    valign: 'middle',
+                    overflow: 'linebreak'
+                },
+                headStyles: {
+                    fillColor: [52, 58, 64],
+                    textColor: [255, 255, 255],
+                    lineWidth: 0.1
+                },
+                columnStyles: {
+                    0: { cellWidth: 6, halign: 'center' },
+                    1: { cellWidth: 28, halign: 'left' },
+                    2: { cellWidth: 8, halign: 'center' },
+                    3: { cellWidth: 10, halign: 'center' }
+                },
+                margin: { top: 10, left: 5, right: 5, bottom: 10 }
+            });
+
+            doc.save(`Rekap_Sholat_Haid_${bulan}.pdf`);
         }
 
         function printRekap() { 
