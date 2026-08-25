@@ -177,7 +177,7 @@
         .table-rekap th, .table-rekap td { padding: 3px 2px !important; text-align: center; vertical-align: middle; }
         .table-rekap th { background-color: #343a40 !important; color: #ffffff !important; position: sticky; top: 0; z-index: 10; border: 1px solid #454d55; }
 
-        /* ==================== CSS CETAK REKAP LANDSCAPE FIXED ==================== */
+        /* ==================== CSS CETAK REKAP LANDSCAPE ==================== */
         @page {
             size: A4 landscape;
             margin: 5mm;
@@ -195,7 +195,6 @@
                 print-color-adjust: exact !important;
             }
 
-            /* Sembunyikan elemen antarmuka luar */
             .main-card, 
             #halPetugas > .admin-container > *:not(#adminTabContent), 
             #adminTabs, 
@@ -262,7 +261,6 @@
                 color: #000 !important;
             }
 
-            /* Khusus Cetak ID Card */
             body.printing-idcard #idcard-pane {
                 display: block !important;
                 opacity: 1 !important;
@@ -1005,19 +1003,44 @@
             }).fail(() => Swal.fire('Error', 'Gagal koneksi', 'error'));
         }
 
+        /* ==================== LOAD & FILTER DATA REKAP ==================== */
         function loadRekapData() {
             const bulan = $('#filterBulan').val();
             const jk = $('#filterJKRekap').val();
             const kelas = $('#filterKelasRekap').val();
+
             Swal.fire({ title: 'Mengambil Data Rekap...', didOpen: () => Swal.showLoading() });
 
-            $.post(urlGAS, { mode: 'rekap', bulan: bulan, jk: jk, kelas: kelas }).done(function(response) {
+            $.post(urlGAS, { 
+                mode: 'rekap', 
+                bulan: bulan, 
+                jk: jk, 
+                kelas: kelas 
+            }).done(function(response) {
                 Swal.close();
-                if(typeof response === 'string') { try { response = JSON.parse(response); } catch(e){} }
+                if (typeof response === 'string') { 
+                    try { response = JSON.parse(response); } catch(e){} 
+                }
 
                 if (response.status === 'success') {
-                    rekapDataCache = response.data;
+                    let dataFiltered = response.data || [];
+                    
+                    if (jk !== 'SEMUA') {
+                        dataFiltered = dataFiltered.filter(d => {
+                            let j = (d.jenis_kelamin || d.role || '').toUpperCase();
+                            return j === jk;
+                        });
+                    }
+                    if (kelas !== 'SEMUA') {
+                        dataFiltered = dataFiltered.filter(d => {
+                            let k = (d.kelas || d.ket || '').toString().trim();
+                            return k === kelas;
+                        });
+                    }
+
+                    rekapDataCache = dataFiltered;
                     renderTableRekap(rekapDataCache);
+
                     $('#exportButtons').removeClass('d-none'); 
                     $('#printHeader').removeClass('d-none');
                     $('#printBulan').text(bulan + " " + new Date().getFullYear());
@@ -1031,7 +1054,10 @@
                 } else {
                     Swal.fire('Gagal', response.error || 'Gagal memuat data.', 'error');
                 }
-            }).fail(function() { Swal.close(); Swal.fire('Error', 'Gagal koneksi ke server.', 'error'); });
+            }).fail(function() { 
+                Swal.close(); 
+                Swal.fire('Error', 'Gagal koneksi ke server.', 'error'); 
+            });
         }
 
         function renderTableRekap(data) {
@@ -1042,28 +1068,34 @@
             headerRow += `<th class="col-total">Dh</th><th class="col-total">Dhr</th><th class="col-total">H</th></tr>`;
 
             let bodyRows = "";
-            data.forEach(d => {
-                let cDh = 0, cDhr = 0, cH = 0;
-                let namaKelas = d.kelas || d.ket || '-';
-                let jenisKelamin = d.jenis_kelamin || d.role || '-';
-                
-                let rowHTML = `<tr><td class="text-center">${d.no}</td><td class="fw-bold text-start">${d.nama}</td><td class="text-center">${jenisKelamin}</td><td class="text-center">${namaKelas}</td>`;
-                
-                for(let i=1; i<=31; i++) {
-                    let h = d.presensi[i] || {};
-                    let vDh = h.dhuha ? '✓' : '-';
-                    let vDhr = h.dhuhur ? '✓' : '-';
-                    let vH = h.haid ? 'H' : '-';
+            if (data.length === 0) {
+                bodyRows = `<tr><td colspan="100" class="text-center py-4 text-muted">Data tidak ditemukan untuk filter ini.</td></tr>`;
+            } else {
+                data.forEach((d, idx) => {
+                    let cDh = 0, cDhr = 0, cH = 0;
+                    let namaKelas = d.kelas || d.ket || '-';
+                    let jenisKelamin = d.jenis_kelamin || d.role || '-';
+                    let noUrut = d.no || (idx + 1);
+                    
+                    let rowHTML = `<tr><td class="text-center">${noUrut}</td><td class="fw-bold text-start">${d.nama}</td><td class="text-center">${jenisKelamin}</td><td class="text-center">${namaKelas}</td>`;
+                    
+                    for(let i=1; i<=31; i++) {
+                        let h = (d.presensi && d.presensi[i]) ? d.presensi[i] : {};
+                        let vDh = h.dhuha ? '✓' : '-';
+                        let vDhr = h.dhuhur ? '✓' : '-';
+                        let vH = h.haid ? 'H' : '-';
 
-                    if(h.dhuha) cDh++;
-                    if(h.dhuhur) cDhr++;
-                    if(h.haid) cH++;
+                        if(h.dhuha) cDh++;
+                        if(h.dhuhur) cDhr++;
+                        if(h.haid) cH++;
 
-                    rowHTML += `<td class="text-center col-hari text-primary">${vDh}</td><td class="text-center col-hari text-success">${vDhr}</td><td class="text-center col-hari text-warning">${vH}</td>`;
-                }
-                rowHTML += `<td class="text-center col-total">${cDh}</td><td class="text-center col-total">${cDhr}</td><td class="text-center col-total">${cH}</td></tr>`;
-                bodyRows += rowHTML;
-            });
+                        rowHTML += `<td class="text-center col-hari text-primary">${vDh}</td><td class="text-center col-hari text-success">${vDhr}</td><td class="text-center col-hari text-warning">${vH}</td>`;
+                    }
+                    rowHTML += `<td class="text-center col-total">${cDh}</td><td class="text-center col-total">${cDhr}</td><td class="text-center col-total">${cH}</td></tr>`;
+                    bodyRows += rowHTML;
+                });
+            }
+
             $('#tabelRekapData thead').html(headerRow);
             $('#tabelRekapData tbody').html(bodyRows);
         }
@@ -1087,13 +1119,14 @@
             csv.push(rowHeader1.join(","));
             csv.push(rowHeader2.join(","));
 
-            rekapDataCache.forEach(d => {
+            rekapDataCache.forEach((d, idx) => {
                 let namaClean = `"${(d.nama || '').replace(/"/g, '""')}"`;
-                let r = [d.no, namaClean, d.jenis_kelamin || d.role || '', d.kelas || d.ket || ''];
+                let noUrut = d.no || (idx + 1);
+                let r = [noUrut, namaClean, d.jenis_kelamin || d.role || '', d.kelas || d.ket || ''];
                 let cDh = 0, cDhr = 0, cH = 0;
 
                 for (let i = 1; i <= 31; i++) {
-                    let h = d.presensi[i] || {};
+                    let h = (d.presensi && d.presensi[i]) ? d.presensi[i] : {};
                     let vDh = h.dhuha ? 1 : 0;
                     let vDhr = h.dhuhur ? 1 : 0;
                     let vH = h.haid ? 1 : 0;
@@ -1113,29 +1146,34 @@
             link.click();
         }
 
+        /* ==================== EKSPORT PDF PERSISI & TIDAK TERPOTONG ==================== */
         function exportToPDF() {
             if (!window.jspdf || !rekapDataCache || rekapDataCache.length === 0) {
                 return Swal.fire('Info', 'Data rekap kosong atau library belum siap.', 'info');
             }
 
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4');
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4'
+            });
 
             let bulan = $('#filterBulan').val();
             let namaSekolah = $('#namaLembaga').text();
             let alamatSekolah = $('#alamatLembaga').text();
 
-            doc.setFontSize(14);
-            doc.setFont("helvetica", "bold");
-            doc.text(namaSekolah.toUpperCase(), 148, 12, { align: 'center' });
-
-            doc.setFontSize(9);
-            doc.setFont("helvetica", "normal");
-            doc.text(alamatSekolah, 148, 17, { align: 'center' });
-
             doc.setFontSize(11);
             doc.setFont("helvetica", "bold");
-            doc.text(`REKAPITULASI SHOLAT & HAID - BULAN ${bulan} ${new Date().getFullYear()}`, 148, 24, { align: 'center' });
+            doc.text(namaSekolah.toUpperCase(), 148, 8, { align: 'center' });
+
+            doc.setFontSize(7);
+            doc.setFont("helvetica", "normal");
+            doc.text(alamatSekolah, 148, 12, { align: 'center' });
+
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "bold");
+            doc.text(`REKAPITULASI SHOLAT & HAID - BULAN ${bulan} ${new Date().getFullYear()}`, 148, 17, { align: 'center' });
 
             let headRow1 = [
                 { content: 'No', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
@@ -1156,12 +1194,13 @@
             headRow2.push('Dh', 'Dhr', 'H');
 
             let bodyData = [];
-            rekapDataCache.forEach(d => {
+            rekapDataCache.forEach((d, idx) => {
                 let cDh = 0, cDhr = 0, cH = 0;
-                let row = [d.no, d.nama, d.jenis_kelamin || d.role || '-', d.kelas || d.ket || '-'];
+                let noUrut = d.no || (idx + 1);
+                let row = [noUrut, d.nama, d.jenis_kelamin || d.role || '-', d.kelas || d.ket || '-'];
 
                 for (let i = 1; i <= 31; i++) {
-                    let h = d.presensi[i] || {};
+                    let h = (d.presensi && d.presensi[i]) ? d.presensi[i] : {};
                     let vDh = h.dhuha ? 'V' : '-';
                     let vDhr = h.dhuhur ? 'V' : '-';
                     let vH = h.haid ? 'H' : '-';
@@ -1176,30 +1215,38 @@
                 bodyData.push(row);
             });
 
+            let columnStylesConfig = {
+                0: { cellWidth: 5, halign: 'center' },   
+                1: { cellWidth: 26, halign: 'left' },   
+                2: { cellWidth: 6, halign: 'center' },   
+                3: { cellWidth: 9, halign: 'center' }    
+            };
+
+            for (let colIdx = 4; colIdx <= 99; colIdx++) {
+                columnStylesConfig[colIdx] = { cellWidth: 2.5, halign: 'center' };
+            }
+
             doc.autoTable({
-                startY: 28,
+                startY: 20,
                 head: [headRow1, headRow2],
                 body: bodyData,
                 theme: 'grid',
+                tableWidth: 'wrap',
                 styles: {
-                    fontSize: 4.5,
-                    cellPadding: 0.5,
+                    fontSize: 3.8,
+                    cellPadding: 0.3,
                     alignment: 'center',
                     valign: 'middle',
-                    overflow: 'linebreak'
+                    overflow: 'ellipsize'
                 },
                 headStyles: {
                     fillColor: [52, 58, 64],
                     textColor: [255, 255, 255],
-                    lineWidth: 0.1
+                    lineWidth: 0.1,
+                    fontSize: 3.5
                 },
-                columnStyles: {
-                    0: { cellWidth: 6, halign: 'center' },
-                    1: { cellWidth: 28, halign: 'left' },
-                    2: { cellWidth: 8, halign: 'center' },
-                    3: { cellWidth: 10, halign: 'center' }
-                },
-                margin: { top: 10, left: 5, right: 5, bottom: 10 }
+                columnStyles: columnStylesConfig,
+                margin: { top: 5, left: 5, right: 5, bottom: 5 }
             });
 
             doc.save(`Rekap_Sholat_Haid_${bulan}.pdf`);
