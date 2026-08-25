@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Presensi Sholat & Haid</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- HTML5-QRCode Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- jsPDF & AutoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.5);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #eef2f5;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 10px;
+        }
+
+        .swal2-container { z-index: 9999 !important; }
+
+        .main-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s;
+            margin: auto;
+        }
+
+        .logo-img {
+            width: 80px; height: 80px;
+            object-fit: contain; margin-bottom: 0.5rem;
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.1));
+            transition: 0.3s;
+        }
+
+        .school-name { font-weight: 700; color: #1a1a1a; margin-bottom: 0; font-size: 1.25rem; }
+        .school-address { font-size: 0.8rem; color: #666; margin-bottom: 1rem; }
+
+        .clock-box {
+            background: #fff; border-radius: 15px; padding: 10px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.03);
+            margin-bottom: 1rem; border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .time-display {
+            font-size: 2.8rem; font-weight: 700; color: var(--primary-color);
+            line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -1px;
+            transition: 0.3s;
+        }
+
+        .date-display { font-size: 0.95rem; color: #888; margin-top: 5px; font-weight: 500; }
+
+        .status-badge {
+            display: inline-block; padding: 10px 20px; border-radius: 12px;
+            font-weight: 600; font-size: 0.9rem; color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15); width: 100%; margin-bottom: 10px;
+            white-space: normal; line-height: 1.4;
+        }
+
+        .status-aktif { background: linear-gradient(135deg, #4361ee, #3f37c9); }
+        .status-tutup { background: linear-gradient(135deg, #eb3349, #f45c43); }
+
+        .mode-switch {
+            background: #fff; border-radius: 50px; padding: 5px;
+            display: flex; justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 15px;
+            border: 1px solid #eee;
+        }
+        .mode-btn {
+            border: none; background: transparent; padding: 8px 10px;
+            border-radius: 50px; font-size: 0.85rem; font-weight: 600;
+            color: #666; width: 32%; transition: 0.3s;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .mode-btn.active {
+            background: var(--primary-color); color: white;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+        }
+
+        #reader { 
+            width: 100%; border-radius: 15px; overflow: hidden; 
+            border: 1px solid #ddd; min-height: 280px; 
+            background-color: #000;
+        }
+
+        .btn-admin {
+            position: absolute; top: 15px; right: 15px; width: 40px; height: 40px;
+            border-radius: 50%; background: #fff; border: 1px solid #eee;
+            color: #555; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn-admin:hover { transform: rotate(90deg); color: var(--primary-color); }
+
+        #halPetugas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #f8f9fa; z-index: 2000; display: none; overflow-y: auto; padding: 20px 10px;
+        }
+
+        .admin-container {
+            max-width: 900px; margin: 0 auto; background: white; padding: 20px;
+            border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); min-height: 90vh;
+        }
+
+        .id-card-wrapper {
+            width: 85.6mm; height: 53.98mm; border: 1px solid #ddd;
+            border-radius: 3.18mm; position: relative; background-color: #fff;
+            overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin: 0 auto; page-break-inside: avoid; background-size: cover; background-position: center;
+        }
+        .id-card-overlay {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background: rgba(255, 255, 255, 0.88); z-index: 1;
+        }
+        .id-card-content {
+            position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; padding: 12px;
+        }
+        .idc-header {
+            display: flex; align-items: center; border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 6px; margin-bottom: 8px;
+        }
+        .idc-logo { width: 35px; height: 35px; object-fit: contain; margin-right: 10px; }
+        .idc-school { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #000; line-height: 1.1; }
+        .idc-body { display: flex; flex: 1; align-items: center; justify-content: space-between; }
+        .idc-details { flex: 1; padding-right: 10px; }
+        .idc-name { font-size: 13px; font-weight: bold; color: #000; margin-bottom: 3px; line-height: 1.2; }
+        .idc-role { display: inline-block; background: var(--primary-color); color: #fff; font-size: 8px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-bottom: 6px; text-transform: uppercase; }
+        .idc-id { font-size: 11px; color: #333; font-family: monospace; font-weight: bold; }
+        .idc-ket { font-size: 9.5px; color: #555; margin-top: 2px; }
+        .idc-qr { padding: 4px; background: #fff; border: 1px solid #ddd; border-radius: 6px; }
+        .idc-qr img { width: 75px; height: 75px; display: block; }
+
+        @media (max-width: 576px) {
+            .main-card { padding: 1.5rem; border-radius: 20px; }
+            .logo-img { width: 60px; height: 60px; }
+            .school-name { font-size: 1.1rem; }
+            .time-display { font-size: 2.2rem; }
+            .mode-btn { font-size: 0.75rem; padding: 6px 5px; }
+            #halPetugas { padding: 0; background: white; }
+            .admin-container { box-shadow: none; border-radius: 0; padding: 15px; min-height: 100vh; }
+            .btn-admin { top: 10px; right: 10px; }
+        }
+
+        .table-rekap-container { max-height: 400px; overflow-x: auto; border: 1px solid #eee; border-radius: 8px; margin-top: 15px; }
+        .table-rekap { font-size: 0.8rem; white-space: nowrap; }
+        .table-rekap th { background-color: #343a40 !important; color: #ffffff !important; position: sticky; top: 0; z-index: 10; border: 1px solid #454d55; }
+
+        @media print {
+            @page { size: auto; margin: 5mm; }
+            body, html { background: white !important; width: 100% !important; height: 100% !important; margin: 0 !important; padding: 0 !important; }
+            body * { visibility: hidden; }
+            #halPetugas, .admin-container, .tab-content, .tab-pane { position: static !important; display: block !important; background: white !important; }
+            body.printing-idcard #printAreaIDCard, body.printing-idcard #printAreaIDCard * { visibility: visible; }
+            body.printing-idcard #printAreaIDCard { position: absolute; left: 0; top: 0; width: 100%; display: flex; flex-wrap: wrap; gap: 2mm; }
+            .id-card-wrapper { border: 1px solid #000; break-inside: avoid; }
+            body.printing-rekap #printableArea, body.printing-rekap #printableArea * { visibility: visible; }
+            body.printing-rekap #printableArea { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; }
+            .no-print, .btn-admin, .mode-switch, .clock-box, #absenStatus, #containerQR, #adminTabs, .btn, input, select, .form-check, .list-group { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container d-flex justify-content-center">
+        <div class="main-card text-center" id="mainCard" style="display:none">
+            <button class="btn-admin" onclick="halPetugas()" title="Admin"><i class="fas fa-cog"></i></button>
+
+            <div id="logo"><div class="spinner-border text-primary" role="status"></div></div>
+            <h5 class="school-name" id="namaLembaga">Memuat Data...</h5>
+            <p class="school-address" id="alamatLembaga">Mohon tunggu...</p>
+
+            <div class="clock-box">
+                <div class="time-display" id="jamdigital">00:00:00</div>
+                <div class="date-display" id="date">-</div>
+            </div>
+
+            <!-- STATUS -->
+            <div id="absenStatus" class="status-badge status-tutup">MEMUAT...</div>
+            <div class="small text-muted mb-3" id="jadwalInfo"></div>
+
+            <!-- MODE SWITCHER SESI -->
+            <div class="mode-switch">
+                <button class="mode-btn active" id="btnModeDhuha" onclick="gantiSesi('DHUHA')">
+                    <i class="fas fa-sun me-1"></i> Dhuha
+                </button>
+                <button class="mode-btn" id="btnModeDhuhur" onclick="gantiSesi('DHUHUR')">
+                    <i class="fas fa-mosque me-1"></i> Dhuhur
+                </button>
+                <button class="mode-btn" id="btnModeHaid" onclick="gantiSesi('HAID')">
+                    <i class="fas fa-female me-1"></i> Haid
+                </button>
+            </div>
+
+            <!-- SCANNER QR CODE -->
+            <div id="containerQR">
+                <div id="reader"></div>
+                <div class="mt-2 small text-muted">Arahkan QR Code kartu ke kamera</div>
+            </div>
+            
+            <!-- INFORMASI SISTEM -->
+            <div class="mt-4 pt-3 border-top text-muted small" style="font-size: 0.7rem;">
+                <p class="m-0">Sistem Presensi QR Code v1.1</p>
+                <p class="m-0">&copy; <span id="footerYear"></span> <span id="footerSchool"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL ADMIN -->
+    <div id="halPetugas">
+        <div class="admin-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold m-0"><i class="fas fa-user-shield me-2"></i>Admin</h4>
+                <button class="btn btn-outline-dark rounded-pill btn-sm" onclick="tutupAdmin()">
+                    <i class="fas fa-times"></i> Tutup
+                </button>
+            </div>
+
+            <!-- NAVIGASI TAB ADMIN -->
+            <ul class="nav nav-tabs mb-3" id="adminTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="sync-tab" data-bs-toggle="tab" data-bs-target="#sync-pane" type="button">Sinkronisasi</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual-pane" type="button">Input Manual</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="rekap-tab" data-bs-toggle="tab" data-bs-target="#rekap-pane" type="button">Rekap Bulanan</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="idcard-tab" data-bs-toggle="tab" data-bs-target="#idcard-pane" type="button"><i class="fas fa-print me-1"></i> ID Card</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="jadwal-tab" data-bs-toggle="tab" data-bs-target="#jadwal-pane" type="button"><i class="fas fa-calendar-alt me-1"></i> Jadwal</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="adminTabContent">
+                <!-- TAB SINKRONISASI -->
+                <div class="tab-pane fade show active" id="sync-pane" role="tabpanel">
+                    <div class="alert alert-secondary text-center p-3">
+                        <h5 class="m-0 fw-bold" id="banyak">0 Data</h5>
+                        <small>Belum disinkron ke Google Sheet</small>
+                    </div>
+                    <div class="list-group list-group-flush mb-4 border rounded" id="dataPresensi" style="max-height: 40vh; overflow-y: auto;"></div>
+                    <div class="row g-2">
+                        <div class="col-6"><button class="btn btn-danger w-100 py-3 rounded-3" onclick="bersihkanPresensi()"><i class="fas fa-trash me-1"></i> Hapus</button></div>
+                        <div class="col-6"><button class="btn btn-success w-100 py-3 rounded-3" onclick="sinkron()"><i class="fas fa-cloud-upload-alt me-1"></i> Kirim</button></div>
+                    </div>
+                </div>
+
+                <!-- TAB INPUT MANUAL -->
+                <div class="tab-pane fade" id="manual-pane" role="tabpanel">
+                    <div class="card border-0 shadow-sm p-4 bg-light rounded">
+                        <label class="form-label fw-bold"><i class="fas fa-keyboard me-2"></i>Input Presensi Manual</label>
+                        <p class="small text-muted mb-3">Ketik Nama atau ID.</p>
+                        <div class="input-group mb-3">
+                            <input type="text" id="manualInputId" class="form-control form-control-lg" placeholder="Cari Nama / ID..." list="datalistPersonal">
+                        </div>
+                        <div class="d-flex gap-2 mb-3">
+                            <button class="btn btn-primary flex-grow-1" onclick="submitManual('DHUHA')">Hadir Dhuha</button>
+                            <button class="btn btn-success flex-grow-1" onclick="submitManual('DHUHUR')">Hadir Dhuhur</button>
+                            <button class="btn btn-warning flex-grow-1 text-white" onclick="submitManual('HAID')">Halangan / Haid</button>
+                        </div>
+                        <datalist id="datalistPersonal"></datalist>
+                    </div>
+                </div>
+
+                <!-- TAB REKAP BULANAN -->
+                <div class="tab-pane fade" id="rekap-pane" role="tabpanel">
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-body bg-light rounded p-3">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-md-3 col-6">
+                                    <label class="small fw-bold">Bulan</label>
+                                    <select id="filterBulan" class="form-select form-select-sm">
+                                        <option value="JAN">JANUARI</option><option value="FEB">FEBRUARI</option>
+                                        <option value="MAR">MARET</option><option value="APR">APRIL</option>
+                                        <option value="MEI">MEI</option><option value="JUN">JUNI</option>
+                                        <option value="JUL">JULI</option><option value="AGU">AGUSTUS</option>
+                                        <option value="SEP">SEPTEMBER</option><option value="OKT">OKTOBER</option>
+                                        <option value="NOV">NOVEMBER</option><option value="DES">DESEMBER</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <label class="small fw-bold">Jenis Kelamin</label>
+                                    <select id="filterJKRekap" class="form-select form-select-sm">
+                                        <option value="SEMUA">Semua JK</option>
+                                        <option value="LAKI-LAKI">Laki-laki</option>
+                                        <option value="PEREMPUAN">Perempuan</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <label class="small fw-bold">Kelas / Ket</label>
+                                    <select id="filterKelasRekap" class="form-select form-select-sm">
+                                        <option value="SEMUA">Semua Kelas</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <label class="small text-light d-none d-md-block">.</label>
+                                    <button class="btn btn-primary btn-sm w-100" onclick="loadRekapData()">
+                                        <i class="fas fa-search me-1"></i> Tampilkan Rekap
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="exportButtons" class="d-none mb-3 text-end">
+                        <button class="btn btn-success btn-sm me-1" onclick="exportToCSV()"><i class="fas fa-file-csv"></i> CSV</button>
+                        <button class="btn btn-danger btn-sm me-1" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+                        <button class="btn btn-secondary btn-sm" onclick="printRekap()"><i class="fas fa-print"></i> Cetak</button>
+                    </div>
+
+                    <div id="printableArea">
+                        <div id="printHeader" class="d-none mb-4">
+                            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px;">
+                                <div style="width: 100px; text-align: left;"><img id="printLogoKiri" src="" style="width: 80px; height: 80px; object-fit: contain;"></div>
+                                <div style="flex: 1; text-align: center;">
+                                    <h3 id="printHeader1" style="margin: 0; font-weight: bold; font-size: 1.2rem; text-transform: uppercase;"></h3>
+                                    <h5 id="printHeader3" style="margin: 0; font-weight: bold; font-size: 1.4rem;"></h5>
+                                </div>
+                            </div>
+                            <h5 class="fw-bold text-center">REKAPITULASI SHOLAT & HAID BULAN <span id="printBulan"></span></h5>
+                        </div>
+                        <div class="table-rekap-container">
+                            <table class="table table-bordered table-striped table-rekap" id="tabelRekapData">
+                                <thead></thead>
+                                <tbody><tr><td colspan="6" class="text-center py-4">Silakan filter dan klik Tampilkan Rekap</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB CETAK ID CARD -->
+                <div class="tab-pane fade" id="idcard-pane" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-4 border-end">
+                            <h5 class="fw-bold mb-3">Pilih Data Cetak</h5>
+                            <div class="mb-3">
+                                <label class="small fw-bold">Desain Background:</label>
+                                <select id="bgSelector" class="form-select form-select-sm" onchange="generateIdCards(false)">
+                                    <option value="default">Default</option>
+                                    <option value="white">Putih Bersih</option>
+                                    <option value="blue">Biru Kristal</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small fw-bold">Filter Jenis Kelamin:</label>
+                                <select id="filterJKCard" class="form-select form-select-sm" onchange="renderIdCardList()">
+                                    <option value="SEMUA">Semua Jenis Kelamin</option>
+                                    <option value="LAKI-LAKI">Laki-laki</option>
+                                    <option value="PEREMPUAN">Perempuan</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small fw-bold">Filter Kelas / Ket:</label>
+                                <select id="filterKelasCard" class="form-select form-select-sm" onchange="renderIdCardList()">
+                                    <option value="SEMUA">Semua Kelas</option>
+                                </select>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="checkAllCard" onchange="toggleAllCards(this)">
+                                <label class="form-check-label fw-bold small" for="checkAllCard">Pilih Semua</label>
+                            </div>
+                            <div class="list-group list-group-flush border" id="listIdCard" style="height: 250px; overflow-y: auto;"></div>
+                            <div class="d-grid mt-3">
+                                <button class="btn btn-primary" onclick="generateIdCards(true)"><i class="fas fa-print me-1"></i> Buat & Cetak ID Card</button>
+                            </div>
+                        </div>
+                        <div class="col-md-8 bg-light d-flex align-items-center justify-content-center p-4">
+                            <div id="printAreaIDCard" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB JADWAL -->
+                <div class="tab-pane fade" id="jadwal-pane" role="tabpanel">
+                    <div class="alert alert-info small mb-3">
+                        <i class="fas fa-info-circle me-1"></i> Atur jam mulai dan selesai untuk sesi <strong>DHUHA</strong>, <strong>DHUHUR</strong>, dan <strong>HAID</strong> (Format: <code>07:00</code> atau ketik <code>LIBUR</code>).
+                    </div>
+                    <div class="table-responsive bg-white rounded shadow-sm">
+                        <table class="table table-bordered table-sm mb-0" style="font-size:0.85rem">
+                            <thead class="table-light">
+                                <tr class="text-center">
+                                    <th style="width: 25%">Hari / Sesi</th>
+                                    <th>Jam Mulai</th>
+                                    <th>Jam Selesai</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scheduleTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="d-grid mt-3">
+                        <button class="btn btn-primary" onclick="saveSchedule()">
+                            <i class="fas fa-save me-1"></i> Simpan Perubahan Jadwal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        var urlGAS = 'https://script.google.com/macros/s/AKfycbxVPiSrQcmaHUBrrKdUv1nzUUNeKjQVGR6eiP_UmE7cC03GvfcJEIAsb1yBeQSTelUHfg/exec'; 
+        let dataPersonal = [];
+        let html5QrcodeScanner = null;
+        let currentSesi = 'DHUHA';
+        let rekapDataCache = [];
+        let globalBackground = ""; 
+        let globalSettings = {}; 
+
+        $(document).ready(function() {
+            firstLoad();
+            checkDailyReset(); 
+            const monthNames = ["JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGU", "SEP", "OKT", "NOV", "DES"];
+            document.getElementById("filterBulan").value = monthNames[new Date().getMonth()];
+            document.getElementById("footerYear").innerText = new Date().getFullYear();
+            
+            $('#jadwal-tab').on('shown.bs.tab', function() { renderScheduleTable(); });
+        });
+
+        // Helper untuk Mengonversi Format Serial Google Sheets / Desimal Ke HH:mm
+        function formatJamFormat(val) {
+            if (!val || val === 'LIBUR' || val === '-') return val || 'LIBUR';
+            let str = val.toString().trim();
+            
+            // Jika desimal waktu bawaan Google Sheet (contoh: 0.291666666)
+            if (!isNaN(str) && !str.includes(':')) {
+                let num = parseFloat(str);
+                if (num < 1) {
+                    let totalMenit = Math.round(num * 24 * 60);
+                    let jam = Math.floor(totalMenit / 60);
+                    let menit = totalMenit % 60;
+                    return jam.toString().padStart(2, '0') + ':' + menit.toString().padStart(2, '0');
+                }
+            }
+
+            // Jika mengandung Date ISO String (contoh: 1899-12-30T07:00:00.000Z)
+            if (str.includes('T') && str.includes(':')) {
+                let parts = str.split('T')[1].split(':');
+                return parts[0] + ':' + parts[1];
+            }
+
+            // Jika format jam standard, bersihkan karakter aneh
+            if (str.includes(':')) {
+                let parts = str.split(':');
+                let jam = parts[0].padStart(2, '0');
+                let menit = parts[1].substr(0, 2);
+                return `${jam}:${menit}`;
+            }
+
+            return str;
+        }
+
+        function renderScheduleTable() {
+            let raw = localStorage.getItem('presensi_schedule');
+            let data = raw ? JSON.parse(raw) : [];
+            let tbody = $('#scheduleTableBody');
+            tbody.empty();
+            
+            const dayOrder = ["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU", "MINGGU"];
+            const sesiOrder = ["DHUHA", "DHUHUR", "HAID"];
+
+            if (!data || data.length === 0) {
+                data = [];
+                dayOrder.forEach(hari => {
+                    sesiOrder.forEach(sesi => {
+                        data.push({ hari: hari, sesi: sesi, mulai: "LIBUR", selesai: "LIBUR" });
+                    });
+                });
+            }
+
+            data.sort((a, b) => {
+                let da = dayOrder.indexOf(a.hari), db = dayOrder.indexOf(b.hari);
+                if (da === db) return sesiOrder.indexOf(a.sesi) - sesiOrder.indexOf(b.sesi);
+                return da - db;
+            });
+
+            data.forEach((row) => {
+                let badgeClass = row.sesi === 'DHUHA' ? 'bg-primary' : (row.sesi === 'DHUHUR' ? 'bg-success' : 'bg-warning text-dark');
+                
+                // BERSIHKAN & FORMAT ANGKA MENJADI HH:mm
+                let jamMulai = formatJamFormat(row.mulai);
+                let jamSelesai = formatJamFormat(row.selesai);
+
+                tbody.append(`
+                    <tr>
+                        <td class="align-middle text-center bg-light">
+                            <strong>${row.hari}</strong><br>
+                            <span class="badge ${badgeClass}" style="font-size:0.6rem">${row.sesi}</span>
+                            <input type="hidden" class="sch-hari" value="${row.hari}">
+                            <input type="hidden" class="sch-sesi" value="${row.sesi}">
+                        </td>
+                        <td class="p-1 align-middle"><input type="text" class="form-control form-control-sm sch-mulai text-center" value="${jamMulai}"></td>
+                        <td class="p-1 align-middle"><input type="text" class="form-control form-control-sm sch-selesai text-center" value="${jamSelesai}"></td>
+                    </tr>
+                `);
+            });
+        }
+
+        function saveSchedule() {
+            let newData = [];
+            $('#scheduleTableBody tr').each(function() {
+                let hari = $(this).find('.sch-hari').val();
+                let sesi = $(this).find('.sch-sesi').val();
+                let mulai = $(this).find('.sch-mulai').val().trim();
+                let selesai = $(this).find('.sch-selesai').val().trim();
+                
+                if(hari && sesi) {
+                    newData.push({hari, sesi, mulai, selesai});
+                }
+            });
+            
+            Swal.fire({ title: 'Menyimpan Jadwal...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            $.post(urlGAS, { mode: 'updateSchedule', data: JSON.stringify(newData) }).done((res) => {
+                Swal.close();
+                let response = typeof res === 'string' ? JSON.parse(res) : res;
+                
+                if(response.status === 'success') {
+                    localStorage.setItem('presensi_schedule', JSON.stringify(newData));
+                    Swal.fire('Berhasil', response.message, 'success');
+                } else {
+                    Swal.fire('Gagal', response.error || 'Gagal menyimpan.', 'error');
+                }
+            }).fail(() => {
+                Swal.close();
+                Swal.fire('Error', 'Koneksi gagal.', 'error');
+            });
+        }
+
+        function checkDailyReset() {
+            const today = new Date().toDateString();
+            if (localStorage.getItem('last_run_date') !== today) {
+                localStorage.setItem('last_run_date', today);
+                localStorage.setItem('presensi_history', JSON.stringify([])); 
+            }
+        }
+
+        function gantiSesi(sesi) {
+            currentSesi = sesi;
+            $('.mode-btn').removeClass('active');
+            if (sesi === 'DHUHA') $('#btnModeDhuha').addClass('active');
+            else if (sesi === 'DHUHUR') $('#btnModeDhuhur').addClass('active');
+            else if (sesi === 'HAID') $('#btnModeHaid').addClass('active');
+        }
+
+        function startQRScanner() {
+            if (typeof Html5QrcodeScanner === 'undefined') return;
+            if (html5QrcodeScanner) return; 
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }
+
+        function stopQRScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear().then(() => { html5QrcodeScanner = null; }).catch(err => console.error(err));
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.pause();
+                prosesPresensi(decodedText, currentSesi);
+                setTimeout(() => { if (html5QrcodeScanner) html5QrcodeScanner.resume(); }, 3000);
+            }
+        }
+
+        function onScanFailure(error) {}
+
+        function submitManual(sesiType) {
+            let inputVal = document.getElementById('manualInputId').value;
+            if (!inputVal) return;
+            prosesPresensi(inputVal, sesiType);
+            document.getElementById('manualInputId').value = ""; 
+        }
+
+        function prosesPresensi(id, sesiType) {
+            id = id.toString().replace(/[\s.,]/g, ''); 
+            let found = dataPersonal.find(i => i.id === id);
+
+            if (found) {
+                const days = ["MINGGU", "SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
+                const todayName = days[new Date().getDay()]; 
+                
+                let rawSchedule = localStorage.getItem('presensi_schedule');
+                let schedule = rawSchedule ? JSON.parse(rawSchedule) : [];
+                let rule = schedule.find(s => s.hari === todayName && s.sesi === sesiType);
+                
+                let mulaiStr = rule ? formatJamFormat(rule.mulai) : "LIBUR";
+                let selesaiStr = rule ? formatJamFormat(rule.selesai) : "LIBUR";
+
+                let now = new Date();
+                let jam = now.getHours().toString().padStart(2, "0");
+                let menit = now.getMinutes().toString().padStart(2, "0");
+                let totalMenit = parseInt(jam) * 60 + parseInt(menit);
+                let jamSimpan = `${jam}:${menit}`;
+
+                if (mulaiStr === "LIBUR" || mulaiStr === "-") {
+                     Swal.fire({ icon: 'info', title: 'Tidak Ada Jadwal', text: `Sesi ${sesiType} diliburkan hari ini.`, timer: 2000, showConfirmButton: false });
+                     return;
+                }
+
+                if (totalMenit >= keMenit(mulaiStr) && totalMenit <= keMenit(selesaiStr)) {
+                    let history = JSON.parse(localStorage.getItem('presensi_history')) || [];
+                    let dateKey = `${sessionStorage.getItem('tanggalok')}-${sessionStorage.getItem('bulanok')}`;
+                    let uniqueKey = `${found.id}-${dateKey}-${sesiType}`;
+
+                    if (history.includes(uniqueKey)) {
+                         Swal.fire({ icon: 'warning', title: `Sudah Absen ${sesiType}`, timer: 2500, showConfirmButton: false }); 
+                         return;
+                    }
+
+                    let tgl = sessionStorage.getItem('tanggalok');
+                    let bln = sessionStorage.getItem('bulanok');
+                    let storageKey = `${found.baris}-${tgl}-${bln}-${sesiType}`;
+                    let val = `${found.baris};${tgl};${bln};${sesiType};${jamSimpan}`;
+                    
+                    localStorage.setItem(storageKey, val);
+                    history.push(uniqueKey);
+                    localStorage.setItem('presensi_history', JSON.stringify(history));
+
+                    loadPresensi(); 
+
+                    let badgeTitle = sesiType === 'HAID' ? 'IZIN HAID' : `HADIR ${sesiType}`;
+                    let badgeClass = sesiType === 'HAID' ? 'text-warning' : 'text-success';
+
+                    Swal.fire({
+                        title: found.nama, 
+                        html: `<h4 class="text-muted mb-2">${found.jenis_kelamin || '-'} | ${found.ket || '-'}</h4><h3 class="mt-2 ${badgeClass}">${badgeTitle}</h3><div class="fs-4 fw-bold">${jamSimpan}</div><div class="mt-2 small text-muted">Data Disimpan Lokal</div>`,
+                        timer: 2500, showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire({ icon: 'warning', title: 'Diluar Jam Sesi', text: `Sesi ${sesiType} belum dibuka atau sudah ditutup.`, timer: 2000, showConfirmButton: false });
+                }
+            } else {
+                Swal.fire({ icon: 'error', title: 'Data Tidak Ditemukan', text: `ID/QR tidak terdaftar.`, timer: 1500, showConfirmButton: false });
+            }
+        }
+
+        function updateClock() {
+            let now = new Date();
+            let jam = now.getHours().toString().padStart(2, "0");
+            let menit = now.getMinutes().toString().padStart(2, "0");
+            let detik = now.getSeconds().toString().padStart(2, "0");
+
+            document.getElementById("jamdigital").innerText = `${jam}:${menit}:${detik}`;
+            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            document.getElementById("date").innerText = now.toLocaleDateString("id-ID", options);
+
+            const monthNames = ["JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGU", "SEP", "OKT", "NOV", "DES"];
+            sessionStorage.setItem('bulanok', monthNames[now.getMonth()]);
+            sessionStorage.setItem('tanggalok', now.getDate());
+
+            checkDailyReset();
+            cekJadwalUmum(jam, menit);
+        }
+
+        function cekJadwalUmum(jam, menit) {
+            const days = ["MINGGU", "SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
+            const todayName = days[new Date().getDay()]; 
+
+            let rawSchedule = localStorage.getItem('presensi_schedule');
+            let schedule = rawSchedule ? JSON.parse(rawSchedule) : [];
+
+            let sDhuha = schedule.find(s => s.hari === todayName && s.sesi === 'DHUHA') || {mulai:'-', selesai:'-'};
+            let sDhuhur = schedule.find(s => s.hari === todayName && s.sesi === 'DHUHUR') || {mulai:'-', selesai:'-'};
+            let sHaid = schedule.find(s => s.hari === todayName && s.sesi === 'HAID') || {mulai:'-', selesai:'-'};
+
+            let mDhuha = formatJamFormat(sDhuha.mulai), eDhuha = formatJamFormat(sDhuha.selesai);
+            let mDhuhur = formatJamFormat(sDhuhur.mulai), eDhuhur = formatJamFormat(sDhuhur.selesai);
+            let mHaid = formatJamFormat(sHaid.mulai), eHaid = formatJamFormat(sHaid.selesai);
+
+            $('#jadwalInfo').html(`
+                <div class="d-flex justify-content-center gap-1 flex-wrap" style="font-size: 0.60rem;">
+                    <span class="badge bg-light text-secondary border"><i class="fas fa-calendar-day me-1"></i>${todayName}</span>
+                    <span class="badge bg-light text-secondary border">Dhuha: ${mDhuha}-${eDhuha}</span>
+                    <span class="badge bg-light text-secondary border">Dhuhur: ${mDhuhur}-${eDhuhur}</span>
+                    <span class="badge bg-light text-secondary border">Haid: ${mHaid}-${eHaid}</span>
+                </div>
+            `);
+
+            let totalMenit = parseInt(jam) * 60 + parseInt(menit);
+            const checkActive = (mulai, selesai) => (mulai !== 'LIBUR' && mulai !== '-' && totalMenit >= keMenit(mulai) && totalMenit <= keMenit(selesai));
+
+            let statusEl = document.getElementById("absenStatus");
+            statusEl.className = "status-badge"; 
+            if (checkActive(mDhuha, eDhuha) || checkActive(mDhuhur, eDhuhur) || checkActive(mHaid, eHaid)) {
+                statusEl.classList.add('status-aktif');
+                statusEl.innerText = `Sesi Aktif: ${currentSesi}`;
+            } else {
+                statusEl.classList.add('status-tutup');
+                statusEl.innerText = "SESI PRESENSI DITUTUP"; 
+            }
+        }
+
+        function keMenit(str) {
+            if (!str || typeof str !== 'string') return 0;
+            let parts = str.replace('.', ':').trim().split(':');
+            return (parseInt(parts[0]) || 0) * 60 + (parseInt(parts[1]) || 0);
+        }
+
+        function firstLoad() {
+            Swal.fire({ title: 'Memuat...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            $.ajax({
+                url: urlGAS + "?mode=load",
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    Swal.close();
+                    $('#mainCard').fadeIn();
+                    sessionStorage.setItem('tampilTap', 'Y');
+                    
+                    if (response.schedule) localStorage.setItem('presensi_schedule', JSON.stringify(response.schedule));
+
+                    setInterval(updateClock, 1000);
+                    updateClock();
+                    startQRScanner();
+
+                    if (response.setting) {
+                        globalSettings = response.setting;
+                        let getVal = (key, idx) => response.setting[key] || (response.setting[idx] ? response.setting[idx].Value : '');
+
+                        let namaLembaga = getVal('NAMA LEMBAGA', 0) || "Sekolah";
+                        let alamatLembaga = getVal('ALAMAT', 1) || "";
+                        let logoUrl = getVal('LOGO', 2);
+                        let bgUrl = getVal('BACKGROUND', 3);
+                        let password = getVal('PASSWORD', 4) || "12345";
+
+                        $('#namaLembaga').text(namaLembaga);
+                        $('#footerSchool').text(namaLembaga);
+                        $('#alamatLembaga').text(alamatLembaga);
+                        $('#logo').html(`<img src="${cekGambar(logoUrl)}" class="logo-img">`);
+                        
+                        globalBackground = cekGambar(bgUrl); 
+                        $('body').css('background-image', `url('${globalBackground}')`);
+                        sessionStorage.setItem('pw', password);
+                    }
+
+                    dataPersonal = [];
+                    let dList = document.getElementById('datalistPersonal');
+                    dList.innerHTML = '';
+                    let kelasSet = new Set();
+
+                    if (response.personal) {
+                        if (typeof response.personal === 'string') {
+                            response.personal.split("#").forEach(item => {
+                                let parts = item.split(";");
+                                let id = parts[0];
+                                let nama = parts[1];
+                                let jk = parts[2] ? parts[2].toUpperCase().trim() : ''; 
+                                let ket = parts[3];
+                                let baris = parts[4];
+
+                                if (nama && nama.trim() !== "") {
+                                    dataPersonal.push({ id, nama, jenis_kelamin: jk, ket, baris });
+                                    let opt = document.createElement('option');
+                                    opt.value = id;
+                                    opt.innerText = `${nama} (${jk} - ${ket})`;
+                                    dList.appendChild(opt);
+                                    if(ket) kelasSet.add(ket);
+                                }
+                            });
+                        } else if (Array.isArray(response.personal)) {
+                            response.personal.forEach(p => {
+                                let id = p.id;
+                                let nama = p.nama;
+                                let jk = p.jenis_kelamin ? p.jenis_kelamin.toUpperCase().trim() : '';
+                                let ket = p.ket;
+                                let baris = p.baris || p.no;
+
+                                dataPersonal.push({ id, nama, jenis_kelamin: jk, ket, baris });
+                                let opt = document.createElement('option');
+                                opt.value = id;
+                                opt.innerText = `${nama} (${jk} - ${ket})`;
+                                dList.appendChild(opt);
+                                if(ket) kelasSet.add(ket);
+                            });
+                        }
+                    }
+                    
+                    let selectKelas = document.getElementById('filterKelasCard');
+                    let selectKelasRekap = document.getElementById('filterKelasRekap');
+                    kelasSet.forEach(k => {
+                        let opt = document.createElement('option');
+                        opt.value = k; opt.text = k;
+                        selectKelas.appendChild(opt);
+                        selectKelasRekap.appendChild(opt.cloneNode(true));
+                    });
+                    
+                    renderIdCardList(); 
+                    loadPresensi(); 
+                },
+                error: function() { 
+                    Swal.close();
+                    $('#mainCard').fadeIn(); 
+                    Swal.fire({ icon: 'error', title: 'Gagal Memuat Data', text: 'Terjadi kesalahan koneksi.' });
+                }
+            });
+        }
+
+        function cekGambar(url) {
+            if (!url) return 'https://via.placeholder.com/150?text=No+Img';
+            if (typeof url === 'string') {
+                const match = url.match(/\/d\/([a-zA-Z0-9_-]+)|id=([a-zA-Z0-9_-]+)/);
+                if (match) return 'https://lh3.googleusercontent.com/d/' + (match[1] || match[2]);
+            }
+            return url;
+        }
+
+        function halPetugas() {
+            Swal.fire({
+                title: 'Password Admin', input: 'password', showCancelButton: true, confirmButtonText: 'Login'
+            }).then((res) => {
+                if (res.isConfirmed && res.value == sessionStorage.getItem('pw')) {
+                    stopQRScanner();
+                    var firstTab = new bootstrap.Tab(document.querySelector('#sync-tab'));
+                    firstTab.show();
+                    $('#halPetugas').fadeIn(); 
+                    loadPresensi(); 
+                } else if(res.isConfirmed) Swal.fire('Salah', 'Password salah', 'error');
+            });
+        }
+
+        function tutupAdmin() {
+            $('#halPetugas').fadeOut(); 
+            startQRScanner();
+        }
+
+        function loadPresensi() {
+            let list = document.getElementById('dataPresensi');
+            if(!list) return;
+            list.innerHTML = '';
+            let count = 0;
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (/^\d+-\d{1,2}-[A-Z]{3}-(DHUHA|DHUHUR|HAID)$/.test(key)) {
+                    count++;
+                    let v = localStorage.getItem(key).split(';');
+                    let p = dataPersonal.find(x => x.baris == v[0]) || {nama:'?', ket:'?'};
+                    let badgeColor = v[3] === 'DHUHA' ? 'primary' : (v[3] === 'DHUHUR' ? 'success' : 'warning text-dark');
+
+                    let item = `<div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div><strong>${p.nama}</strong><br><small>${p.ket} | ${v[1]} ${v[2]}</small></div>
+                        <div class="text-end"><span class="badge bg-${badgeColor}">${v[3]}</span><br><strong>${v[4]}</strong></div>
+                    </div>`;
+                    list.insertAdjacentHTML('beforeend', item);
+                }
+            }
+            if(document.getElementById('banyak')) document.getElementById('banyak').innerText = `${count} Data`;
+        }
+
+        function bersihkanPresensi() {
+            Swal.fire({ title: 'Hapus Semua?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya' }).then((r) => {
+                if (r.isConfirmed) {
+                    let keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        let k = localStorage.key(i);
+                        if(/^\d+-\d{1,2}-[A-Z]{3}-(DHUHA|DHUHUR|HAID)$/.test(k)) keysToRemove.push(k);
+                    }
+                    keysToRemove.forEach(k => localStorage.removeItem(k));
+                    loadPresensi();
+                }
+            });
+        }
+
+        function sinkron() {
+            let data = [], keys = [];
+            for(let i=0; i<localStorage.length; i++) {
+                let k = localStorage.key(i);
+                if(/^\d+-\d{1,2}-[A-Z]{3}-(DHUHA|DHUHUR|HAID)$/.test(k)) { 
+                    data.push(localStorage.getItem(k)); 
+                    keys.push(k); 
+                }
+            }
+            if(data.length === 0) return Swal.fire('Info', 'Data kosong', 'info');
+
+            Swal.fire({ title: 'Mengirim...', didOpen: () => Swal.showLoading() });
+            $.post(urlGAS, { mode: 'tulispresensi', data: JSON.stringify(data) }).done((res) => {
+                Swal.close();
+                let response = typeof res === 'string' ? JSON.parse(res) : res;
+                if(response.status === 'success') {
+                    keys.forEach(k => localStorage.removeItem(k));
+                    loadPresensi();
+                    Swal.fire('Berhasil', response.message, 'success');
+                } else Swal.fire('Gagal', response.error, 'error');
+            }).fail(() => Swal.fire('Error', 'Gagal koneksi', 'error'));
+        }
+
+        function loadRekapData() {
+            const bulan = $('#filterBulan').val();
+            const jk = $('#filterJKRekap').val();
+            const kelas = $('#filterKelasRekap').val();
+            Swal.fire({ title: 'Mengambil Data Rekap...', didOpen: () => Swal.showLoading() });
+
+            $.post(urlGAS, { mode: 'rekap', bulan: bulan, jk: jk, kelas: kelas }).done(function(response) {
+                Swal.close();
+                if(typeof response === 'string') { try { response = JSON.parse(response); } catch(e){} }
+
+                if (response.status === 'success') {
+                    rekapDataCache = response.data;
+                    renderTableRekap(rekapDataCache);
+                    $('#exportButtons').removeClass('d-none'); 
+                    $('#printHeader').removeClass('d-none');
+                    $('#printBulan').text(bulan + " " + new Date().getFullYear());
+                    
+                    if (globalSettings) {
+                        let getVal = (key, idx) => globalSettings[key] || (globalSettings[idx] ? globalSettings[idx].Value : '');
+                        $('#printLogoKiri').attr('src', cekGambar(getVal('LOGO', 2)));
+                        $('#printHeader1').text(getVal('NAMA LEMBAGA', 0));
+                        $('#printHeader3').text(getVal('ALAMAT', 1));
+                    }
+                } else {
+                    Swal.fire('Gagal', response.error || 'Gagal memuat data.', 'error');
+                }
+            }).fail(function() { Swal.close(); Swal.fire('Error', 'Gagal koneksi ke server.', 'error'); });
+        }
+
+        function renderTableRekap(data) {
+            let headerRow = `<tr><th rowspan="2" class="align-middle text-center">No</th><th rowspan="2" class="align-middle text-center">Nama Lengkap</th><th rowspan="2" class="align-middle text-center">JK</th><th rowspan="2" class="align-middle text-center">Kelas/Ket</th>`;
+            for(let i=1; i<=31; i++) headerRow += `<th colspan="3" class="text-center d-print-none" style="font-size:0.6rem;">${i}</th>`;
+            headerRow += `<th colspan="3" class="text-center bg-secondary text-white">Total</th></tr><tr>`;
+            for(let i=1; i<=31; i++) headerRow += `<th class="d-print-none" style="font-size:0.5rem;" title="Dhuha">Dh</th><th class="d-print-none" style="font-size:0.5rem;" title="Dhuhur">Dhr</th><th class="d-print-none" style="font-size:0.5rem;" title="Haid">H</th>`;
+            headerRow += `<th class="text-center" style="font-size:0.7rem">Dh</th><th class="text-center" style="font-size:0.7rem">Dhr</th><th class="text-center" style="font-size:0.7rem">H</th></tr>`;
+
+            let bodyRows = "";
+            data.forEach(d => {
+                let cDh = 0, cDhr = 0, cH = 0;
+                let namaKelas = d.kelas || d.ket || '-';
+                let jenisKelamin = d.jenis_kelamin || d.role || '-';
+                
+                let rowHTML = `<tr><td class="text-center">${d.no}</td><td class="fw-bold">${d.nama}</td><td class="text-center">${jenisKelamin}</td><td class="text-center">${namaKelas}</td>`;
+                
+                for(let i=1; i<=31; i++) {
+                    let h = d.presensi[i] || {};
+                    let vDh = h.dhuha ? '✓' : '-';
+                    let vDhr = h.dhuhur ? '✓' : '-';
+                    let vH = h.haid ? 'H' : '-';
+
+                    if(h.dhuha) cDh++;
+                    if(h.dhuhur) cDhr++;
+                    if(h.haid) cH++;
+
+                    rowHTML += `<td class="d-print-none text-center text-primary">${vDh}</td><td class="d-print-none text-center text-success">${vDhr}</td><td class="d-print-none text-center text-warning">${vH}</td>`;
+                }
+                rowHTML += `<td class="text-center fw-bold">${cDh}</td><td class="text-center fw-bold">${cDhr}</td><td class="text-center fw-bold">${cH}</td></tr>`;
+                bodyRows += rowHTML;
+            });
+            $('#tabelRekapData thead').html(headerRow);
+            $('#tabelRekapData tbody').html(bodyRows);
+        }
+
+        function exportToCSV() {
+            let csv = [];
+            let header = ["No", "Nama Lengkap", "Jenis Kelamin", "Kelas/Ket"];
+            for(let i=1; i<=31; i++) { header.push(i+"_Dhuha"); header.push(i+"_Dhuhur"); header.push(i+"_Haid"); }
+            header.push("Total_Dhuha", "Total_Dhuhur", "Total_Haid");
+            csv.push(header.join(","));
+
+            rekapDataCache.forEach(d => {
+                let r = [d.no, `"${d.nama}"`, d.jenis_kelamin || d.role || '', d.kelas || d.ket || ''];
+                let cDh = 0, cDhr = 0, cH = 0;
+                for(let i=1; i<=31; i++) { 
+                    let h = d.presensi[i] || {};
+                    let vDh = h.dhuha ? 1 : 0;
+                    let vDhr = h.dhuhur ? 1 : 0;
+                    let vH = h.haid ? 1 : 0;
+                    r.push(vDh, vDhr, vH);
+                    cDh += vDh; cDhr += vDhr; cH += vH;
+                }
+                r.push(cDh, cDhr, cH);
+                csv.push(r.join(","));
+            });
+
+            let blob = new Blob([csv.join("\n")], { type: "text/csv" });
+            let link = document.createElement("a");
+            link.download = `Rekap_Sholat_Haid.csv`;
+            link.href = window.URL.createObjectURL(blob);
+            link.click();
+        }
+
+        function exportToPDF() {
+            if (!window.jspdf) return Swal.fire('Error', 'Library PDF belum siap.', 'error');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+            doc.text("Laporan Rekap Presensi Sholat & Haid", 15, 15);
+            doc.save("Rekap_Sholat_Haid.pdf");
+        }
+
+        function printRekap() { 
+            document.body.classList.add('printing-rekap');
+            setTimeout(() => { window.print(); document.body.classList.remove('printing-rekap'); }, 1000);
+        }
+        
+        function renderIdCardList() {
+            let container = document.getElementById('listIdCard');
+            container.innerHTML = '';
+            let filterKls = document.getElementById('filterKelasCard').value;
+            let filterJK = document.getElementById('filterJKCard').value;
+
+            dataPersonal.forEach((p) => {
+                let jkVal = (p.jenis_kelamin || '').toUpperCase();
+                let matchJK = (filterJK === "SEMUA" || jkVal === filterJK);
+                let matchKls = (filterKls === "SEMUA" || p.ket === filterKls);
+
+                if (matchJK && matchKls) {
+                    container.insertAdjacentHTML('beforeend', `<label class="list-group-item"><input class="form-check-input me-2 chk-card" type="checkbox" value="${p.id}">${p.nama} <span class="badge bg-secondary ms-1" style="font-size:0.6rem">${p.jenis_kelamin || '-'}</span> <span class="badge bg-light text-dark border ms-1" style="font-size:0.6rem">${p.ket}</span></label>`);
+                }
+            });
+        }
+
+        function toggleAllCards(el) {
+            document.querySelectorAll('.chk-card').forEach(cb => cb.checked = el.checked);
+        }
+
+        function generateIdCards(doPrint = false) {
+            let checkedIds = Array.from(document.querySelectorAll('.chk-card:checked')).map(cb => cb.value);
+            if (checkedIds.length === 0 && doPrint) return Swal.fire('Info', 'Pilih minimal satu data', 'info');
+
+            let printArea = document.getElementById('printAreaIDCard');
+            printArea.innerHTML = ''; 
+
+            let namaSekolah = $('#namaLembaga').text();
+            let logoSrc = $('#logo img').attr('src');
+            let bgStyle = `background-image: url('${globalBackground}')`; 
+
+            checkedIds.forEach(id => {
+                let p = dataPersonal.find(x => x.id === id);
+                if (p) {
+                    let qrId = `qr-${p.id}`;
+                    let jkLabel = p.jenis_kelamin || 'PERSONAL';
+                    
+                    let htmlFront = `
+                        <div class="id-card-wrapper" style="${bgStyle}">
+                            <div class="id-card-overlay"></div>
+                            <div class="id-card-content">
+                                <div class="idc-header">
+                                    <img src="${logoSrc}" class="idc-logo">
+                                    <div class="idc-school">${namaSekolah}</div>
+                                </div>
+                                <div class="idc-body">
+                                    <div class="idc-details">
+                                        <div class="idc-name">${p.nama}</div>
+                                        <div class="idc-role">${jkLabel}</div>
+                                        <div class="idc-id">ID: ${p.id}</div>
+                                        <div class="idc-ket">KET: ${p.ket || '-'}</div>
+                                    </div>
+                                    <div class="idc-qr" id="${qrId}"></div>
+                                </div>
+                            </div>
+                        </div>`;
+                    printArea.insertAdjacentHTML('beforeend', htmlFront);
+                    new QRCode(document.getElementById(qrId), { text: p.id, width: 75, height: 75 });
+                }
+            });
+            if (doPrint) {
+                document.body.classList.add('printing-idcard');
+                setTimeout(() => { window.print(); document.body.classList.remove('printing-idcard'); }, 1000);
+            }
+        }
+    </script>
+</body>
+</html>
