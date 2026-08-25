@@ -177,19 +177,12 @@
         .table-rekap th, .table-rekap td { padding: 3px 2px !important; text-align: center; vertical-align: middle; }
         .table-rekap th { background-color: #343a40 !important; color: #ffffff !important; position: sticky; top: 0; z-index: 10; border: 1px solid #454d55; }
 
-        /* ==================== CSS CETAK REKAP LANDSCAPE ==================== */
-        @page {
-            size: A4 landscape;
-            margin: 5mm;
-        }
-
+        /* ==================== CSS CETAK REKAP (KHUSUS TOTAL REKAP PORTRAIT/RINGKAS) ==================== */
         @media print {
-            html, body { 
-                width: 297mm !important;
-                height: 210mm !important;
+            body.printing-rekap {
                 background: #fff !important; 
                 margin: 0 !important; 
-                padding: 0 !important; 
+                padding: 10mm !important; 
                 overflow: visible !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
@@ -226,38 +219,34 @@
                 padding: 0 !important;
             }
 
+            /* Sembunyikan Seluruh Kolom Rincian Tanggal 1 s/d 31 saat Print Browser */
+            .table-rekap th.col-hari, 
+            .table-rekap td.col-hari,
+            .table-rekap th.th-tanggal-parent { 
+                display: none !important; 
+            }
+
             .table-rekap-container {
                 max-height: none !important;
                 overflow: visible !important;
                 border: none !important;
-                margin-top: 5px !important;
+                margin-top: 10px !important;
                 width: 100% !important;
             }
 
             .table-rekap {
-                font-size: 5.2pt !important;
+                font-size: 9pt !important;
                 width: 100% !important;
-                table-layout: fixed !important;
                 border-collapse: collapse !important;
             }
 
             .table-rekap th, .table-rekap td {
-                padding: 1px 0px !important;
-                height: 13px !important;
-                border: 0.5px solid #000 !important;
-                word-wrap: break-word !important;
+                padding: 6px 4px !important;
+                border: 1px solid #000 !important;
             }
 
-            .table-rekap th:nth-child(1), .table-rekap td:nth-child(1) { width: 2% !important; }
-            .table-rekap th:nth-child(2), .table-rekap td:nth-child(2) { width: 13% !important; text-align: left !important; padding-left: 2px !important; }
-            .table-rekap th:nth-child(3), .table-rekap td:nth-child(3) { width: 3% !important; }
-            .table-rekap th:nth-child(4), .table-rekap td:nth-child(4) { width: 4% !important; }
-            
-            .table-rekap th.col-hari, .table-rekap td.col-hari { width: 0.78% !important; }
-            .table-rekap th.col-total, .table-rekap td.col-total { width: 1.1% !important; font-weight: bold !important; }
-
             .table-rekap th {
-                background-color: #e9ecef !important;
+                background-color: #f2f2f2 !important;
                 color: #000 !important;
             }
 
@@ -426,8 +415,8 @@
 
                     <div id="exportButtons" class="d-none mb-3 text-end">
                         <button class="btn btn-success btn-sm me-1" onclick="exportToCSV()"><i class="fas fa-file-excel"></i> Excel (CSV)</button>
-                        <button class="btn btn-danger btn-sm me-1" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
-                        <button class="btn btn-secondary btn-sm" onclick="printRekap()"><i class="fas fa-print"></i> Cetak</button>
+                        <button class="btn btn-danger btn-sm me-1" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> PDF (Detail 31 Hari)</button>
+                        <button class="btn btn-secondary btn-sm" onclick="printRekap()"><i class="fas fa-print"></i> Cetak (Ringkasan Total)</button>
                     </div>
 
                     <div id="printableArea">
@@ -1062,10 +1051,10 @@
 
         function renderTableRekap(data) {
             let headerRow = `<tr><th rowspan="2" class="align-middle text-center">No</th><th rowspan="2" class="align-middle text-center">Nama Lengkap</th><th rowspan="2" class="align-middle text-center">JK</th><th rowspan="2" class="align-middle text-center">Kelas</th>`;
-            for(let i=1; i<=31; i++) headerRow += `<th colspan="3" class="text-center" style="font-size:0.55rem;">${i}</th>`;
-            headerRow += `<th colspan="3" class="text-center bg-secondary text-white">Total</th></tr><tr>`;
+            for(let i=1; i<=31; i++) headerRow += `<th colspan="3" class="text-center th-tanggal-parent" style="font-size:0.55rem;">${i}</th>`;
+            headerRow += `<th colspan="3" class="text-center bg-secondary text-white">Total Presensi</th></tr><tr>`;
             for(let i=1; i<=31; i++) headerRow += `<th class="col-hari" title="Dhuha">Dh</th><th class="col-hari" title="Dhuhur">Dhr</th><th class="col-hari" title="Haid">H</th>`;
-            headerRow += `<th class="col-total">Dh</th><th class="col-total">Dhr</th><th class="col-total">H</th></tr>`;
+            headerRow += `<th class="col-total">Dhuha</th><th class="col-total">Dhuhur</th><th class="col-total">Haid</th></tr>`;
 
             let bodyRows = "";
             if (data.length === 0) {
@@ -1091,7 +1080,7 @@
 
                         rowHTML += `<td class="text-center col-hari text-primary">${vDh}</td><td class="text-center col-hari text-success">${vDhr}</td><td class="text-center col-hari text-warning">${vH}</td>`;
                     }
-                    rowHTML += `<td class="text-center col-total">${cDh}</td><td class="text-center col-total">${cDhr}</td><td class="text-center col-total">${cH}</td></tr>`;
+                    rowHTML += `<td class="text-center col-total fw-bold text-primary">${cDh}</td><td class="text-center col-total fw-bold text-success">${cDhr}</td><td class="text-center col-total fw-bold text-danger">${cH}</td></tr>`;
                     bodyRows += rowHTML;
                 });
             }
@@ -1146,7 +1135,7 @@
             link.click();
         }
 
-        /* ==================== EKSPORT PDF PERSISI & TIDAK TERPOTONG ==================== */
+        /* ==================== EKSPORT PDF UTUH (TERMASUK DETAIL 31 HARI) ==================== */
         function exportToPDF() {
             if (!window.jspdf || !rekapDataCache || rekapDataCache.length === 0) {
                 return Swal.fire('Info', 'Data rekap kosong atau library belum siap.', 'info');
