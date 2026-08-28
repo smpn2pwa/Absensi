@@ -177,137 +177,24 @@
         .table-rekap th, .table-rekap td { padding: 3px 2px !important; text-align: center; vertical-align: middle; }
         .table-rekap th { background-color: #343a40 !important; color: #ffffff !important; position: sticky; top: 0; z-index: 10; border: 1px solid #454d55; }
 
-        /* ==================== FIX ISOLASI CETAK (PRINT CSS) ==================== */
         @media print {
-            body {
-                background: #fff !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: visible !important;
-            }
+            body { background: #fff !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; }
+            body.printing-idcard > *:not(#halPetugas) { display: none !important; }
+            body.printing-idcard #halPetugas { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: auto !important; background: white !important; padding: 0 !important; margin: 0 !important; display: block !important; overflow: visible !important; }
+            body.printing-idcard .admin-container { padding: 0 !important; margin: 0 !important; box-shadow: none !important; border: none !important; width: 100% !important; max-width: 100% !important; }
+            body.printing-idcard .admin-container > *:not(#adminTabContent), body.printing-idcard #adminTabs, body.printing-idcard #idcard-pane .col-md-4 { display: none !important; }
+            body.printing-idcard #idcard-pane { display: block !important; opacity: 1 !important; padding: 0 !important; margin: 0 !important; }
+            body.printing-idcard #idcard-pane .col-md-8 { width: 100% !important; background: none !important; padding: 0 !important; margin: 0 !important; display: block !important; }
+            body.printing-idcard #printAreaIDCard { display: flex !important; flex-wrap: wrap !important; gap: 5mm !important; justify-content: flex-start !important; width: 100% !important; padding: 5mm !important; }
+            body.printing-idcard .id-card-wrapper { border: 1px solid #000 !important; page-break-inside: avoid !important; box-shadow: none !important; }
 
-            /* Clear tampilan saat cetak ID Card */
-            body.printing-idcard > *:not(#halPetugas) {
-                display: none !important;
-            }
-
-            body.printing-idcard #halPetugas {
-                position: absolute !important;
-                top: 0 !important;
-                left: 0 !important;
-                width: 100% !important;
-                height: auto !important;
-                background: white !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                display: block !important;
-                overflow: visible !important;
-            }
-
-            body.printing-idcard .admin-container {
-                padding: 0 !important;
-                margin: 0 !important;
-                box-shadow: none !important;
-                border: none !important;
-                width: 100% !important;
-                max-width: 100% !important;
-            }
-
-            body.printing-idcard .admin-container > *:not(#adminTabContent),
-            body.printing-idcard #adminTabs,
-            body.printing-idcard #idcard-pane .col-md-4 {
-                display: none !important;
-            }
-
-            body.printing-idcard #idcard-pane {
-                display: block !important;
-                opacity: 1 !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-
-            body.printing-idcard #idcard-pane .col-md-8 {
-                width: 100% !important;
-                background: none !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                display: block !important;
-            }
-
-            body.printing-idcard #printAreaIDCard {
-                display: flex !important;
-                flex-wrap: wrap !important;
-                gap: 5mm !important;
-                justify-content: flex-start !important;
-                width: 100% !important;
-                padding: 5mm !important;
-            }
-
-            body.printing-idcard .id-card-wrapper {
-                border: 1px solid #000 !important;
-                page-break-inside: avoid !important;
-                box-shadow: none !important;
-            }
-
-            /* Clear tampilan saat cetak Rekap */
-            body.printing-rekap .main-card, 
-            body.printing-rekap #halPetugas > .admin-container > *:not(#adminTabContent), 
-            body.printing-rekap #adminTabs, 
-            body.printing-rekap .card, 
-            body.printing-rekap #exportButtons, 
-            body.printing-rekap .no-print, 
-            body.printing-rekap .btn-admin { 
-                display: none !important; 
-            }
-
-            body.printing-rekap #halPetugas, 
-            body.printing-rekap .admin-container, 
-            body.printing-rekap #adminTabContent, 
-            body.printing-rekap #rekap-pane {
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                background: #fff !important;
-                box-shadow: none !important;
-                border: none !important;
-                display: block !important;
-            }
-
-            body.printing-rekap #printableArea { 
-                display: block !important;
-                width: 100% !important; 
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-
-            body.printing-rekap .table-rekap th.col-hari, 
-            body.printing-rekap .table-rekap td.col-hari,
-            body.printing-rekap .table-rekap th.th-tanggal-parent { 
-                display: none !important; 
-            }
-
-            body.printing-rekap .table-rekap-container {
-                max-height: none !important;
-                overflow: visible !important;
-                border: none !important;
-                margin-top: 10px !important;
-                width: 100% !important;
-            }
-
-            body.printing-rekap .table-rekap {
-                font-size: 9pt !important;
-                width: 100% !important;
-                border-collapse: collapse !important;
-            }
-
-            body.printing-rekap .table-rekap th, 
-            body.printing-rekap .table-rekap td {
-                padding: 6px 4px !important;
-                border: 1px solid #000 !important;
-            }
+            body.printing-rekap .main-card, body.printing-rekap #halPetugas > .admin-container > *:not(#adminTabContent), body.printing-rekap #adminTabs, body.printing-rekap .card, body.printing-rekap #exportButtons, body.printing-rekap .no-print, body.printing-rekap .btn-admin { display: none !important; }
+            body.printing-rekap #halPetugas, body.printing-rekap .admin-container, body.printing-rekap #adminTabContent, body.printing-rekap #rekap-pane { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; margin: 0 !important; padding: 0 !important; background: #fff !important; box-shadow: none !important; border: none !important; display: block !important; }
+            body.printing-rekap #printableArea { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            body.printing-rekap .table-rekap th.col-hari, body.printing-rekap .table-rekap td.col-hari, body.printing-rekap .table-rekap th.th-tanggal-parent { display: none !important; }
+            body.printing-rekap .table-rekap-container { max-height: none !important; overflow: visible !important; border: none !important; margin-top: 10px !important; width: 100% !important; }
+            body.printing-rekap .table-rekap { font-size: 9pt !important; width: 100% !important; border-collapse: collapse !important; }
+            body.printing-rekap .table-rekap th, body.printing-rekap .table-rekap td { padding: 6px 4px !important; border: 1px solid #000 !important; }
         }
     </style>
 </head>
@@ -489,14 +376,6 @@
                         <div class="col-md-4 border-end">
                             <h5 class="fw-bold mb-3">Pilih Data Cetak</h5>
                             <div class="mb-3">
-                                <label class="small fw-bold">Desain Background:</label>
-                                <select id="bgSelector" class="form-select form-select-sm" onchange="generateIdCards(false)">
-                                    <option value="default">Default</option>
-                                    <option value="white">Putih Bersih</option>
-                                    <option value="blue">Biru Kristal</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
                                 <label class="small fw-bold">Filter Jenis Kelamin:</label>
                                 <select id="filterJKCard" class="form-select form-select-sm" onchange="renderIdCardList()">
                                     <option value="SEMUA">Semua Jenis Kelamin</option>
@@ -576,29 +455,14 @@
         function formatJamFormat(val) {
             if (!val || val === 'LIBUR' || val === '-') return val || 'LIBUR';
             let str = val.toString().trim();
-            
-            if (!isNaN(str) && !str.includes(':')) {
-                let num = parseFloat(str);
-                if (num < 1) {
-                    let totalMenit = Math.round(num * 24 * 60);
-                    let jam = Math.floor(totalMenit / 60);
-                    let menit = totalMenit % 60;
-                    return jam.toString().padStart(2, '0') + ':' + menit.toString().padStart(2, '0');
-                }
-            }
-
             if (str.includes('T') && str.includes(':')) {
                 let parts = str.split('T')[1].split(':');
                 return parts[0] + ':' + parts[1];
             }
-
             if (str.includes(':')) {
                 let parts = str.split(':');
-                let jam = parts[0].padStart(2, '0');
-                let menit = parts[1].substr(0, 2);
-                return `${jam}:${menit}`;
+                return `${parts[0].padStart(2, '0')}:${parts[1].substr(0, 2)}`;
             }
-
             return str;
         }
 
@@ -612,7 +476,6 @@
             const sesiOrder = ["DHUHA", "DHUHUR", "HAID"];
 
             if (!data || data.length === 0) {
-                data = [];
                 dayOrder.forEach(hari => {
                     sesiOrder.forEach(sesi => {
                         data.push({ hari: hari, sesi: sesi, mulai: "LIBUR", selesai: "LIBUR" });
@@ -628,7 +491,6 @@
 
             data.forEach((row) => {
                 let badgeClass = row.sesi === 'DHUHA' ? 'bg-primary' : (row.sesi === 'DHUHUR' ? 'bg-success' : 'bg-warning text-dark');
-                
                 let jamMulai = formatJamFormat(row.mulai);
                 let jamSelesai = formatJamFormat(row.selesai);
 
@@ -654,18 +516,14 @@
                 let sesi = $(this).find('.sch-sesi').val();
                 let mulai = $(this).find('.sch-mulai').val().trim();
                 let selesai = $(this).find('.sch-selesai').val().trim();
-                
-                if(hari && sesi) {
-                    newData.push({hari, sesi, mulai, selesai});
-                }
+                if(hari && sesi) newData.push({hari, sesi, mulai, selesai});
             });
             
             Swal.fire({ title: 'Menyimpan Jadwal...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             
-            $.post(urlGAS, { mode: 'updateSchedule', data: JSON.stringify(newData) }).done((res) => {
+            $.get(urlGAS, { mode: 'updateSchedule', data: JSON.stringify(newData) }).done((res) => {
                 Swal.close();
                 let response = typeof res === 'string' ? JSON.parse(res) : res;
-                
                 if(response.status === 'success') {
                     localStorage.setItem('presensi_schedule', JSON.stringify(newData));
                     Swal.fire('Berhasil', response.message, 'success');
@@ -726,7 +584,7 @@
 
         function prosesPresensi(id, sesiType) {
             id = id.toString().replace(/[\s.,]/g, ''); 
-            let found = dataPersonal.find(i => i.id === id);
+            let found = dataPersonal.find(i => i.id === id || i.nama.toLowerCase() === id.toLowerCase());
 
             if (found) {
                 const days = ["MINGGU", "SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
@@ -762,8 +620,11 @@
 
                     let tgl = sessionStorage.getItem('tanggalok');
                     let bln = sessionStorage.getItem('bulanok');
+                    
+                    // FIX INDEKS SHEET (Offset +3 untuk header)
+                    let sheetRowIndex = parseInt(found.baris, 10) + 3;
                     let storageKey = `${found.baris}-${tgl}-${bln}-${sesiType}`;
-                    let val = `${found.baris};${tgl};${bln};${sesiType};${jamSimpan}`;
+                    let val = `${sheetRowIndex};${tgl};${bln};${sesiType};${jamSimpan}`;
                     
                     localStorage.setItem(storageKey, val);
                     history.push(uniqueKey);
@@ -892,31 +753,13 @@
                     let kelasSet = new Set();
 
                     if (response.personal) {
-                        if (typeof response.personal === 'string') {
-                            response.personal.split("#").forEach(item => {
-                                let parts = item.split(";");
-                                let id = parts[0];
-                                let nama = parts[1];
-                                let jk = parts[2] ? parts[2].toUpperCase().trim() : ''; 
-                                let ket = parts[3];
-                                let baris = parts[4];
-
-                                if (nama && nama.trim() !== "") {
-                                    dataPersonal.push({ id, nama, jenis_kelamin: jk, ket, baris });
-                                    let opt = document.createElement('option');
-                                    opt.value = id;
-                                    opt.innerText = `${nama} (${jk} - ${ket})`;
-                                    dList.appendChild(opt);
-                                    if(ket) kelasSet.add(ket);
-                                }
-                            });
-                        } else if (Array.isArray(response.personal)) {
-                            response.personal.forEach(p => {
+                        if (Array.isArray(response.personal)) {
+                            response.personal.forEach((p, idx) => {
                                 let id = p.id;
                                 let nama = p.nama;
                                 let jk = p.jenis_kelamin ? p.jenis_kelamin.toUpperCase().trim() : '';
                                 let ket = p.ket;
-                                let baris = p.baris || p.no;
+                                let baris = idx + 1; // Baris relatif data
 
                                 dataPersonal.push({ id, nama, jenis_kelamin: jk, ket, baris });
                                 let opt = document.createElement('option');
@@ -986,7 +829,8 @@
                 if (/^\d+-\d{1,2}-[A-Z]{3}-(DHUHA|DHUHUR|HAID)$/.test(key)) {
                     count++;
                     let v = localStorage.getItem(key).split(';');
-                    let p = dataPersonal.find(x => x.baris == v[0]) || {nama:'?', ket:'?'};
+                    let targetBarisData = parseInt(v[0], 10) - 3;
+                    let p = dataPersonal.find(x => x.baris == targetBarisData) || {nama:'?', ket:'?'};
                     let badgeColor = v[3] === 'DHUHA' ? 'primary' : (v[3] === 'DHUHUR' ? 'success' : 'warning text-dark');
 
                     let item = `<div class="list-group-item d-flex justify-content-between align-items-center">
@@ -1025,7 +869,9 @@
             if(data.length === 0) return Swal.fire('Info', 'Data kosong', 'info');
 
             Swal.fire({ title: 'Mengirim...', didOpen: () => Swal.showLoading() });
-            $.post(urlGAS, { mode: 'tulispresensi', data: JSON.stringify(data) }).done((res) => {
+            
+            // MENGGUNAKAN METHOD GET AGAR BEBAS CORS DI GOOGLE APPS SCRIPT
+            $.get(urlGAS, { mode: 'tulispresensi', data: JSON.stringify(data) }).done((res) => {
                 Swal.close();
                 let response = typeof res === 'string' ? JSON.parse(res) : res;
                 if(response.status === 'success') {
@@ -1036,7 +882,6 @@
             }).fail(() => Swal.fire('Error', 'Gagal koneksi', 'error'));
         }
 
-        /* ==================== LOAD & FILTER DATA REKAP ==================== */
         function loadRekapData() {
             const bulan = $('#filterBulan').val();
             const jk = $('#filterJKRekap').val();
@@ -1044,31 +889,17 @@
 
             Swal.fire({ title: 'Mengambil Data Rekap...', didOpen: () => Swal.showLoading() });
 
-            $.post(urlGAS, { 
-                mode: 'rekap', 
-                bulan: bulan, 
-                jk: jk, 
-                kelas: kelas 
-            }).done(function(response) {
+            $.get(urlGAS, { mode: 'rekap', bulan: bulan, jk: jk, kelas: kelas }).done(function(response) {
                 Swal.close();
-                if (typeof response === 'string') { 
-                    try { response = JSON.parse(response); } catch(e){} 
-                }
+                if (typeof response === 'string') { try { response = JSON.parse(response); } catch(e){} }
 
                 if (response.status === 'success') {
                     let dataFiltered = response.data || [];
-                    
                     if (jk !== 'SEMUA') {
-                        dataFiltered = dataFiltered.filter(d => {
-                            let j = (d.jenis_kelamin || d.role || '').toUpperCase();
-                            return j === jk;
-                        });
+                        dataFiltered = dataFiltered.filter(d => (d.jenis_kelamin || d.role || '').toUpperCase() === jk);
                     }
                     if (kelas !== 'SEMUA') {
-                        dataFiltered = dataFiltered.filter(d => {
-                            let k = (d.kelas || d.ket || '').toString().trim();
-                            return k === kelas;
-                        });
+                        dataFiltered = dataFiltered.filter(d => (d.kelas || d.ket || '').toString().trim() === kelas);
                     }
 
                     rekapDataCache = dataFiltered;
@@ -1134,9 +965,7 @@
         }
 
         function exportToCSV() {
-            if (!rekapDataCache || rekapDataCache.length === 0) {
-                return Swal.fire('Info', 'Data rekap masih kosong!', 'info');
-            }
+            if (!rekapDataCache || rekapDataCache.length === 0) return Swal.fire('Info', 'Data rekap masih kosong!', 'info');
 
             let csv = [];
             let rowHeader1 = ["No", "Nama Lengkap", "Jenis Kelamin", "Kelas/Ket"];
@@ -1179,18 +1008,11 @@
             link.click();
         }
 
-        /* ==================== EKSPORT PDF UTUH ==================== */
         function exportToPDF() {
-            if (!window.jspdf || !rekapDataCache || rekapDataCache.length === 0) {
-                return Swal.fire('Info', 'Data rekap kosong atau library belum siap.', 'info');
-            }
+            if (!window.jspdf || !rekapDataCache || rekapDataCache.length === 0) return Swal.fire('Info', 'Data rekap kosong atau library belum siap.', 'info');
 
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: 'landscape',
-                unit: 'mm',
-                format: 'a4'
-            });
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
             let bulan = $('#filterBulan').val();
             let namaSekolah = $('#namaLembaga').text();
@@ -1215,15 +1037,11 @@
                 { content: 'Kelas', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } }
             ];
 
-            for (let i = 1; i <= 31; i++) {
-                headRow1.push({ content: `${i}`, colSpan: 3, styles: { halign: 'center' } });
-            }
+            for (let i = 1; i <= 31; i++) headRow1.push({ content: `${i}`, colSpan: 3, styles: { halign: 'center' } });
             headRow1.push({ content: 'Total', colSpan: 3, styles: { halign: 'center' } });
 
             let headRow2 = [];
-            for (let i = 1; i <= 31; i++) {
-                headRow2.push('Dh', 'Dhr', 'H');
-            }
+            for (let i = 1; i <= 31; i++) headRow2.push('Dh', 'Dhr', 'H');
             headRow2.push('Dh', 'Dhr', 'H');
 
             let bodyData = [];
@@ -1265,19 +1083,8 @@
                 body: bodyData,
                 theme: 'grid',
                 tableWidth: 'wrap',
-                styles: {
-                    fontSize: 3.8,
-                    cellPadding: 0.3,
-                    alignment: 'center',
-                    valign: 'middle',
-                    overflow: 'ellipsize'
-                },
-                headStyles: {
-                    fillColor: [52, 58, 64],
-                    textColor: [255, 255, 255],
-                    lineWidth: 0.1,
-                    fontSize: 3.5
-                },
+                styles: { fontSize: 3.8, cellPadding: 0.3, alignment: 'center', valign: 'middle', overflow: 'ellipsize' },
+                headStyles: { fillColor: [52, 58, 64], textColor: [255, 255, 255], lineWidth: 0.1, fontSize: 3.5 },
                 columnStyles: columnStylesConfig,
                 margin: { top: 5, left: 5, right: 5, bottom: 5 }
             });
